@@ -1,0 +1,74 @@
+Fonts: https://dafont.com/
+
+Nextion documentation: https://nextion.tech/instruction-set/
+
+page 0 // Change page to indexed page 0
+page main // Change page to the page named main
+ref t0 // Refreshes the component with .objname of t0
+ref 3 // Refreshes the component with .id of 3
+ref 0 // Refreshes all components on the current page (same as ref 255)
+click b0,1 // Trigger Touch Press Event of component with .objname b0
+click 4,0 // Trigger Touch Release Event of component with .id 4
+ref_stop // stop refreshing the waveform on each data point added
+ref_star // resume default refreshing, refresh on each data point added
+get t0.txt // sends text contents of t0.txt in 0x70 Return Data format
+get “123” // sends text constant “123” in 0x70 Return Data format
+get n0.val // sends numeric value of n0.val in 0x71 Return Data format
+get 123 // sends numeric constant 123 in 0x71 Return Data format
+sendme // sends the value of dp (global variable that keeps current page) in 0x66 Return Data Format
+covx h0.val,t0.txt,0,0 // convert value of h0 into t0.txt without leading zeros
+covx t0.txt,h0.val,0,0 // convert t0.txt into integer in h0.val <length> ignored.
+covx h0.val,t0.txt,4,0 // convert value of h0 into t0.txt with exactly 4 digits
+covx h0.val,t0.txt,4,1 // convert value of h0 into t0.txt with commas
+covx h0.val,t0.txt,4,2 // convert value of h0 into t0.txt in 4 hex digits (2 Bytes)
+touch_j // trigger the recalibration of touch sensor
+substr va0.txt,t0.txt,0,5 // extract first 5 chars from va0.txt, put into t0.txt
+vis b0,0 // hide component with .objname b0
+vis b0,1 // show component with .objname b0, refresh on front layer
+vis 1,0 // hide component with .id 1
+vis 1,1 // show component with .id 1, refresh on front layer
+vis 255,0 // hides all components on the current page
+tsw b0,0 // disable Touch Press/Release events for component b0
+tsw b0,1 // enable Touch Press/Release events for component b0
+tsw 1,0 // disable Touch Press/Release events for component with id 1
+tsw 1,1 // enable Touch Press/Release events for component with id 1
+tsw 255,0 // disable all Touch Press/Release events on current page
+com_stop // stops execution of instructions from Serial
+com_star // resume execution of instruction from Serial
+randset 1,100 //set current random generator range from 1 to 100
+randset 0,65535 //set current random generator range from 0 to 65535
+code_c // Clears the command buffer without execution
+prints t0.txt,0 // return 1 byte per char of t0.txt without null byte ending.
+prints t0.txt,4 // returns first 4 bytes, 1 byte per char of t0.txt without null byte ending.
+prints j0.val,0 // return 4 bytes for j0.val in little endian order
+prints j0.val,1 // returns 1 byte of j0.val in little endian order
+prints “123”,2 // return 2 bytes for text “12” 0x31 0x32
+prints 123,2 // returns 2 bytes for value 123 0x7B 0x00
+printh 0d // send single byte: value 13 hex: 0x0d
+printh 0d 0a // send two bytes: value 13,10 hex: 0x0d0x0a
+add 1,0,30 // add value 30 to Channel 0 of Waveform with .id 1
+add 2,1,h0.val // add h0.val to Channel 1 of Waveform with .id 2
+addt 2,0,20 // adds 20 bytes to Channel 0 Waveform with .id 2 from serial
+cle 1,0 // clear channel 0 data from waveform with .id 1
+cle 2,255 // clear all channels from waveform with .id 2
+rest // immediate reset of Nextion device – reboot
+doevents // allows refresh and serial to receive during code block
+strlen t0.txt,n0.val // assigns n0.val with length of t0.txt content
+btlen t0.txt,n0.val // assigns n0.val with number of bytes t0.txt occupies
+ucopy n0.val,0,2,0 // copy buffer bytes 0,1 to lower 2 bytes of n0.val
+ucopy n0.val,0,2,2 // copy buffer bytes 0,1 to upper 2 bytes of n0.val
+ucopy n0.val,0,4,0 // copy buffer bytes 0,1,2,3 to n0.val
+ucopy t0.txt,0,10,0 // copy buffer bytes 0 to 9 into t0.txt
+udelete 24//delete first 24 bytes of Buffer
+udelete 10//delete first 10 bytes of Buffer
+crcrest 1,0xFFFF//reset and initialize crc
+crcputs va0.val,0//accumulate crc for va0.val (length auto)
+crcputs va1.txt,3//accumulate crc for first 3 bytes of va1.txt
+crcputh 0A//accumulate crc for byte 0x0A
+crcputh 0A 0D//accumulate crc for bytes 0x0A 0x0D
+crcputu 0,10//accumulate crc for first 10 bytes of Serial Buffer
+crcputu 10,10//accumulate crc for second 10 bytes 0x0A 0x0D
+spstr “ab3cd3ef3ghi”,va1.txt,”3”,0//return string ab before first delimiter occurs
+spstr “ab3cd3ef3ghi”,va1.txt,”3”,2//return string ef after second delimiter occurs
+
+
