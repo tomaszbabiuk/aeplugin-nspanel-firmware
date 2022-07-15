@@ -1,27 +1,19 @@
 import gnu.io.CommPort
 import gnu.io.CommPortIdentifier
 import gnu.io.SerialPort
+import uitester.vm.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.charset.Charset
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 
-private val writeQueue : BlockingQueue<ByteArray> = LinkedBlockingQueue()
-private val asciiCharset = Charset.forName("ASCII")
+private val writeQueue: BlockingQueue<ByteArray> = LinkedBlockingQueue()
 
-private fun offerForNextion(content: ByteArray) {
-    writeQueue.offer(content)
-    writeQueue.offer(byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()))
-}
-
-private fun offerForNextion(s: String) {
-    offerForNextion(s.toByteArray(asciiCharset))
-}
 
 fun main(args: Array<String>) {
-    println("Connecting to COM34")
+    //real device: COM9
+    //simulator: COM34
     connect("COM34")
 }
 
@@ -58,6 +50,16 @@ fun connect(portName: String) {
 
 class SerialReader(var inputStream: InputStream) : Runnable {
 
+    private val renderer = SerialNextionRenderer(writeQueue)
+    private val viewModels = listOf(
+        WifiScanNVM(renderer),
+        WifiSsidNVM(renderer),
+        WifiPasswordNVM(renderer),
+        InboxNVM(renderer),
+        InboxDetailsNVM(renderer),
+        ControlNVM(renderer)
+    )
+
     override fun run() {
         val ioBuffer = ByteArray(1024)
         try {
@@ -67,47 +69,11 @@ class SerialReader(var inputStream: InputStream) : Runnable {
                     val data = ioBuffer.copyOfRange(0, inTheBuffer)
                     println(data.toHexString())
 
-                    //request for scan result
-                    if (data.size == 2 && data[0] == 0x00.toByte() && data[1] == 0x00.toByte()) {
-                        offerForNextion("wifiSsid.scanResult.txt=\"network1;network2;network3\"")
-                        offerForNextion("page wifiSsid")
-                    }
-
-                    //ssid selected
-                    if (data.size > 2 && data[0] == 0x01.toByte() && data[1] == 0x01.toByte()) {
-                        val ssid = String(data.drop(2).toByteArray())
-                        println("Selected ssid=$ssid")
-                        offerForNextion("page wifiPassword")
-                    }
-
-                    //password selected
-                    if (data.size > 2 && data[0] == 0x01.toByte() && data[1] == 0x02.toByte()) {
-                        val password = String(data.drop(2).toByteArray())
-                        println("Typed password=$password")
-                        offerForNextion("page connecting")
-
-                        Thread.sleep(4000)
-
-                        offerForNextion("page control")
-                    }
-
-                    //inbox subjects requested
-                    if (data.size == 2 && data[0] == 0x00.toByte() && data[1] == 0x03.toByte()) {
-                        offerForNextion("vis slot0Btn,1")
-                        offerForNextion("slot0Btn.txt=\"Thank you for choosing Automate Everything\"")
-                        offerForNextion("vis slot1Btn,1")
-                        offerForNextion("slot1Btn.txt=\"Automation enabled\"")
-                        offerForNextion("vis slot2Btn,1")
-                        offerForNextion("slot2Btn.txt=\"Automation disabled\"")
-                        offerForNextion("vis slot3Btn,1")
-                        offerForNextion("slot3Btn.txt=\"A problem with sensor one\"")
-                        offerForNextion("vis slot4Btn,0")
-                        offerForNextion("vis slot5Btn,0")
-                        offerForNextion("vis moreBtn,0")
-                        offerForNextion("vis loadingBtn,0")
-                    }
+                    viewModels
+                        .filter { it.checkMatch(data) }
+                        .forEach { it.control(data) }
                 }
-                Thread.sleep(500)
+                Thread.sleep(1000)
             }
         } catch (e: IOException) {
             e.printStackTrace()

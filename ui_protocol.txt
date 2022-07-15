@@ -6,6 +6,9 @@ second byte = entity type
  * 00 - ssids
  * 01 - selected wifi ssid
  * 02 - wifi password
+ * 03 __ - inbox subjects + page number
+ * 04 __ - inbox message + id (id = page number*8 + slot number)
+ * 05 __ - device evaluations + page number
 
 welcome
 =======
@@ -22,3 +25,19 @@ wifiPassword
 ============
 Nex -> MCU 01 02 "wifi password" // UI-selection (on Next button click)
 Nex <- MCU "page connecting"
+
+inbox
+=====
+Nex -> MCU 00 03 00 // Request for inbox subjects, page 0 (on page load)
+
+Nex -> MCU 00 04 05 // Request for inbox message, id=05
+//MCU marks message as read
+
+Nex <- MCU "page inboxMessage"
+Nex <- MCU "subjectTxt.txt=\"some subject\""
+Nex <- MCU "dataTxt.txt=\"5 minutes ago\""
+Nex <- MCU "bodyTxt.txt=\"This is the message body... a very long one\""
+
+control
+=======
+Nex -> MCU 00 05 00 // Request for device evaluations, page 0 (on page load)
