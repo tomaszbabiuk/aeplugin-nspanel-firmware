@@ -14,6 +14,11 @@ dependencies {
     //rxtx
     implementation 'com.neuronrobotics:nrjavaserial:5.2.1'
 
+    //svg conversion: https://github.com/yveszoundi/svg2png/blob/main/pom.xml
+    implementation 'org.apache.xmlgraphics:batik-transcoder:1.14'
+    implementation 'org.apache.xmlgraphics:batik-codec:1.14'
+    implementation 'commons-codec:commons-codec:1.15'
+
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
 

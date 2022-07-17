@@ -2,8 +2,24 @@ package uitester.vm
 
 import NextionRenderer
 import RendereableNVM
+import SvgToNextionConverter
+import Point
 
 class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
+
+    private val svgToNextion = SvgToNextionConverter()
+    val atticIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\attic.svg")
+    val buttonIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\button.svg")
+    val boilerIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\boiler.svg")
+    val blindsIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\blinds.svg")
+    val bullhornIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\bullhorn.svg")
+
+    private fun renderImageToNextion(xRel: Int, yRel: Int, points: List<Point>) {
+        points.forEach {
+            val line = "line ${xRel + it.x0},${yRel + it.y0},${xRel + it.x1},${yRel + it.y1},WHITE"
+            renderer.render(line)
+        }
+    }
 
     override fun checkMatch(data: ByteArray): Boolean {
         return data.size == 3 && data[0] == 0x00.toByte() && data[1] == 0x05.toByte()
@@ -17,6 +33,12 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
             renderControlSlot(2, "Ceiling lamp", "12W", "On", true)
             renderControlSlot(3, "Desk lamp", "0W", "Off", false)
             renderControlSlot(4, "Door", "---", "Closed", false)
+
+            renderImageToNextion(65, 47, atticIcon)
+            renderImageToNextion(65, 102, buttonIcon)
+            renderImageToNextion(65, 157, boilerIcon)
+            renderImageToNextion(65, 212, blindsIcon)
+            renderImageToNextion(65, 267, bullhornIcon)
             renderPager(prevEnabled = false, nextEnabled = true)
         } else {
             renderControlSlot(0, "Window contactron", "---", "Disarmed", true)
@@ -24,6 +46,9 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
             renderEmptySlot(2)
             renderEmptySlot(3)
             renderEmptySlot(4)
+
+            renderImageToNextion(65, 47, atticIcon)
+            renderImageToNextion(65, 102, buttonIcon)
             renderPager(prevEnabled = true, nextEnabled = false)
         }
     }
@@ -35,7 +60,6 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
         renderer.render("vis desc${slot}Txt,1")
         renderer.render("desc${slot}Txt.txt=\"${description}\"")
         renderer.render("vis marker${slot}Txt,${if (signaled) "1" else "0"}")
-        renderer.render("vis icon${slot}Pct,1")
         renderer.render("vis slot${slot}Btn,1")
         renderer.render("slot${slot}Btn.txt=\"${state}\"")
     }
@@ -45,7 +69,6 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
         renderer.render("vis name${slot}Txt,0")
         renderer.render("vis desc${slot}Txt,0")
         renderer.render("vis marker${slot}Txt,0")
-        renderer.render("vis icon${slot}Pct,0")
         renderer.render("vis slot${slot}Btn,0")
     }
 

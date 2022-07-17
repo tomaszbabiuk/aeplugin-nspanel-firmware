@@ -12,9 +12,11 @@ private val writeQueue: BlockingQueue<ByteArray> = LinkedBlockingQueue()
 
 
 fun main(args: Array<String>) {
-    //real device: COM9
-    //simulator: COM34
-    connect("COM34")
+    if (args.isEmpty()) {
+        println("Please specify a serial port name as a parameter for this program")
+    }
+
+    connect(args[0])
 }
 
 fun connect(portName: String) {
@@ -51,6 +53,8 @@ fun connect(portName: String) {
 class SerialReader(var inputStream: InputStream) : Runnable {
 
     private val renderer = SerialNextionRenderer(writeQueue)
+    private val cumulativeBuffer = ArrayList<Byte>()
+
     private val viewModels = listOf(
         WifiScanNVM(renderer),
         WifiSsidNVM(renderer),
@@ -60,18 +64,29 @@ class SerialReader(var inputStream: InputStream) : Runnable {
         ControlNVM(renderer)
     )
 
+
     override fun run() {
         val ioBuffer = ByteArray(1024)
         try {
             while (true) {
                 val inTheBuffer = inputStream.read(ioBuffer)
+
                 if (inTheBuffer > 0) {
                     val data = ioBuffer.copyOfRange(0, inTheBuffer)
-                    println(data.toHexString())
+                    cumulativeBuffer.addAll(data.toList())
 
-                    viewModels
-                        .filter { it.checkMatch(data) }
-                        .forEach { it.control(data) }
+                    println("IN: ${data.toHexString()}, CUMULATED: ${cumulativeBuffer.toHexString()}")
+
+                    if (cumulativeBuffer.size > 3 && cumulativeBuffer[cumulativeBuffer.size-3]==0xFF.toByte() && cumulativeBuffer[cumulativeBuffer.size-2]==0xFF.toByte() && cumulativeBuffer[cumulativeBuffer.size-1]==0xFF.toByte()) {
+                        cumulativeBuffer.removeLast()
+                        cumulativeBuffer.removeLast()
+                        cumulativeBuffer.removeLast()
+                        viewModels
+                            .filter { it.checkMatch(cumulativeBuffer.toByteArray()) }
+                            .forEach { it.control(cumulativeBuffer.toByteArray()) }
+
+                        cumulativeBuffer.clear()
+                    }
                 }
                 Thread.sleep(1000)
             }
@@ -108,4 +123,5 @@ class SerialWriter(out: OutputStream) : Runnable {
 }
 
 fun ByteArray.toHexString() = joinToString(" ") { "%02X".format(it) }
+fun ArrayList<Byte>.toHexString() = joinToString(" ") { "%02X".format(it) }
 

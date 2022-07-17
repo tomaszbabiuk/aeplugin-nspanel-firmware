@@ -12,6 +12,7 @@ class SerialNextionRenderer(private val sink: BlockingQueue<ByteArray>) : Nextio
     private fun offerForNextion(content: ByteArray) {
         sink.offer(content)
         sink.offer(byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()))
+        Thread.sleep(1)
     }
 
     private fun offerForNextion(s: String) {
