@@ -61,7 +61,9 @@ class SerialReader(var inputStream: InputStream) : Runnable {
         WifiPasswordNVM(renderer),
         InboxNVM(renderer),
         InboxDetailsNVM(renderer),
-        ControlNVM(renderer)
+        ControlNVM(renderer),
+        ControlDetailsNVM(renderer),
+        StateSelectedNVM(renderer)
     )
 
 
@@ -78,6 +80,7 @@ class SerialReader(var inputStream: InputStream) : Runnable {
                     println("IN: ${data.toHexString()}, CUMULATED: ${cumulativeBuffer.toHexString()}")
 
                     if (cumulativeBuffer.size > 3 && cumulativeBuffer[cumulativeBuffer.size-3]==0xFF.toByte() && cumulativeBuffer[cumulativeBuffer.size-2]==0xFF.toByte() && cumulativeBuffer[cumulativeBuffer.size-1]==0xFF.toByte()) {
+
                         cumulativeBuffer.removeLast()
                         cumulativeBuffer.removeLast()
                         cumulativeBuffer.removeLast()

@@ -8,11 +8,11 @@ import Point
 class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
 
     private val svgToNextion = SvgToNextionConverter()
-    val atticIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\attic.svg")
-    val buttonIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\button.svg")
-    val boilerIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\boiler.svg")
-    val blindsIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\blinds.svg")
-    val bullhornIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\bullhorn.svg")
+    val atticIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\attic.svg", 40f, 40f)
+    val buttonIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\button.svg", 40f, 40f)
+    val boilerIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\boiler.svg", 40f, 40f)
+    val blindsIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\blinds.svg", 40f, 40f)
+    val bullhornIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\bullhorn.svg", 40f, 40f)
 
     private fun renderImageToNextion(xRel: Int, yRel: Int, points: List<Point>) {
         points.forEach {

@@ -1,3 +1,4 @@
 
 rootProject.name = 'ui-tester'
 
+includeBuild "../../automate-everything/modules/data"
