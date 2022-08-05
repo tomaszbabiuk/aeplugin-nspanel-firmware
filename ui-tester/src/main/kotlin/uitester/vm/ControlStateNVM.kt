@@ -1,15 +1,16 @@
 package uitester.vm
 
+import EntityType
 import NextionRenderer
 import RendereableNVM
 import SvgToNextionConverter
 import Point
-import eu.automateeverything.data.automation.EvaluationResultDto
-import eu.automateeverything.data.automation.NextStatesDto
-import eu.automateeverything.data.automation.State
-import eu.automateeverything.data.localization.Resource
+import RequestType
 
-class ControlDetailsNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
+/***
+ * [Data] [InterfaceValueOfState] [Instance Id Low] [Instance Id High] [State page no]
+ */
+class ControlStateNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
 
     private val svgToNextion = SvgToNextionConverter()
     val atticIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\attic.svg", 100f, 100f)
@@ -23,16 +24,20 @@ class ControlDetailsNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
     }
 
     override fun checkMatch(data: ByteArray): Boolean {
-        return data.size == 4 && data[0] == 0x00.toByte() && data[1] == 0x06.toByte()
+        return data.size == 5 &&
+                data[0] == RequestType.Data.dataByte &&
+                data[1] == EntityType.InterfaceValueOfState.dataByte
     }
 
     override fun control(data: ByteArray) {
         renderer.render("vis loadingBtn,1")
 
-        val instanceId = data[2]
-        val statePageId = data[3]
-        if (instanceId == 0x00.toByte()) {
-            if (statePageId == 0x00.toByte()) {
+        val instanceIdLow = data[2]
+        val instanceIdHigh = data[3]
+        val statePageNo = data[4]
+        val instanceId = instanceIdHigh*256 + instanceIdLow
+        if (instanceId == 100) {
+            if (statePageNo == 0x00.toByte()) {
                 renderer.render("titleTxt.txt=\"Recuperator\"")
                 renderer.render("intValTxt.txt=\"II gear\"")
                 renderer.render("descTxt.txt=\"\"")
@@ -70,7 +75,7 @@ class ControlDetailsNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
                 renderer.render("vis pageDownBtn,0")
             }
 
-        } else if (instanceId == 0x01.toByte()) {
+        } else if (instanceId == 200) {
             renderer.render("titleTxt.txt=\"Radiator valve\"")
             renderer.render("intValTxt.txt=\"Regulation\"")
             renderer.render("descTxt.txt=\"Opening level 12%\\rDelay 30s\"")

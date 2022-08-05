@@ -1,7 +1,7 @@
 import java.nio.charset.Charset
 import java.util.concurrent.BlockingQueue
 
-private val asciiCharset = Charset.forName("ASCII")
+private val asciiCharset = Charset.forName("ISO8859-2")
 
 
 interface NextionRenderer {

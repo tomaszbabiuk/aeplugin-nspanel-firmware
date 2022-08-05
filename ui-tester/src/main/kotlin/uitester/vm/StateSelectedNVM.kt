@@ -2,16 +2,24 @@ package uitester.vm
 
 import NextionRenderer
 import RendereableNVM
+import RequestType
 
+/***
+ * [UI selection] [State selection] [Instance Id Low] [Instance Id High] [State slot no]
+ */
 class StateSelectedNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
     override fun checkMatch(data: ByteArray): Boolean {
-        return data.size == 4 && data[0] == 0x01.toByte() && data[1] == 0x07.toByte()
+        return data.size == 5 &&
+                data[0] == RequestType.UISelection.dataByte &&
+                data[1] == EntityType.StateSelection.dataByte
     }
 
     override fun control(data:ByteArray) {
-        val instanceId = data[2]
-        val slotId = data[3]
-        println("State selected, instance id=$instanceId, slot id=$slotId")
+        val instanceIdLow = data[2]
+        val instanceIdHigh = data[3]
+        val instanceId = instanceIdHigh*256 + instanceIdLow
+        val stateSlotNo = data[4]
+        println("State selected, instance id=$instanceId, state slot no=$stateSlotNo")
         renderer.render("page control")
     }
 }

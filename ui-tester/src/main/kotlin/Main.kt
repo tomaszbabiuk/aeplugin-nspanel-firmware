@@ -62,8 +62,9 @@ class SerialReader(var inputStream: InputStream) : Runnable {
         InboxNVM(renderer),
         InboxDetailsNVM(renderer),
         ControlNVM(renderer),
-        ControlDetailsNVM(renderer),
-        StateSelectedNVM(renderer)
+        ControlStateNVM(renderer),
+        StateSelectedNVM(renderer),
+        ControlControllerNVM(renderer)
     )
 
 

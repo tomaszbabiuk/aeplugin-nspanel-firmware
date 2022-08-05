@@ -5,7 +5,7 @@ import RendereableNVM
 
 class InboxNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
     override fun checkMatch(data: ByteArray): Boolean {
-        return data.size == 3 && data[0] == 0x00.toByte() && data[1] == 0x03.toByte()
+        return data.size == 3 && data[0] == RequestType.Data.dataByte && data[1] == EntityType.InboxSubjects.dataByte
     }
 
     override fun control(data: ByteArray) {

@@ -1,11 +1,12 @@
 package uitester.vm
 
+import EntityType
 import NextionRenderer
 import RendereableNVM
 
 class InboxDetailsNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
     override fun checkMatch(data: ByteArray): Boolean {
-        return data.size == 3 && data[0] == 0x00.toByte() && data[1] == 0x04.toByte()
+        return data.size == 3 && data[0] == RequestType.Data.dataByte && data[1] == EntityType.InboxBody.dataByte
     }
 
     override fun control(data: ByteArray) {
