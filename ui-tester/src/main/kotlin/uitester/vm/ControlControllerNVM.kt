@@ -38,11 +38,16 @@ class ControlControllerNVM(renderer: NextionRenderer) : RendereableNVM(renderer)
         val instanceId: UInt = instanceIdHigh.toUByte()*256U + instanceIdLow.toUByte()
         if (instanceId == 200U) {
                 renderer.render("titleTxt.txt=\"Controller 10XPf\"")
-                renderer.render("intValTxt.txt=\"27°C\"")
                 renderer.render("minValTxt.txt=\"10°C\"")
                 renderer.render("maxValTxt.txt=\"40°C\"")
                 renderer.render("descTxt.txt=\"Heating\"")
                 renderer.render("vis markerTxt,1")
+                renderer.render("unitTxt.txt=\"°C\"")
+                renderer.render("step.val=50") //0.5°C
+                renderer.render("valSlr.maxval=60") //(40-10)*2... steps per range
+                renderer.render("valSlr.val=4") //min val + 4 steps
+                renderer.render("valueTxt.val=1200")
+
                 renderImageToNextion(174, 47, atticIcon)
         }
 
