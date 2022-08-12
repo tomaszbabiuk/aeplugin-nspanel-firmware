@@ -36,11 +36,10 @@ class ControlStateNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
         val instanceIdHigh = data[3]
         val statePageNo = data[4]
         val instanceId = instanceIdHigh*256 + instanceIdLow
-        if (instanceId == 100) {
+        if (instanceId == 1) {
             if (statePageNo == 0x00.toByte()) {
                 renderer.render("titleTxt.txt=\"Recuperator\"")
                 renderer.render("intValTxt.txt=\"II gear\"")
-                renderer.render("descTxt.txt=\"\"")
                 renderer.render("vis markerTxt,1")
                 renderImageToNextion(63, 47, atticIcon)
 
@@ -75,10 +74,9 @@ class ControlStateNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
                 renderer.render("vis pageDownBtn,0")
             }
 
-        } else if (instanceId == 200) {
+        } else if (instanceId == 2) {
             renderer.render("titleTxt.txt=\"Radiator valve\"")
             renderer.render("intValTxt.txt=\"Regulation\"")
-            renderer.render("descTxt.txt=\"Opening level 12%\\rDelay 30s\"")
             renderer.render("vis markerTxt,0")
             renderImageToNextion(63, 47, buttonIcon)
         }

@@ -13,6 +13,8 @@ enum class EntityType(val dataByte: Byte) {
     InterfaceValueOfState(0x06.toByte()),
     StateSelection(0x07.toByte()),
     InterfaceValueOfController(0x08.toByte()),
-    ValueSelection(0x09.toByte())
+    ValueSelection(0x09.toByte()),
+    InterfaceValueOfColor(0x0A.toByte()),
+    ColorSelection(0x0B.toByte()),
 
 }

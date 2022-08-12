@@ -9,12 +9,11 @@ import RequestType
 import java.nio.charset.Charset
 
 /***
- * [Data] [InterfaceValueOfController] [Instance Id Low] [Instance Id High]
+ * [Data] [InterfaceValueOfColor] [Instance Id LSB] [Instance Id MSB]
  */
-class ControlControllerNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
+class ControlColorNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
 
     private val svgToNextion = SvgToNextionConverter()
-    val atticIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\attic.svg", 100f, 100f)
     val buttonIcon = svgToNextion.convert("C:\\Users\\tombab\\Downloads\\button.svg", 100f, 100f)
 
     private fun renderImageToNextion(xRel: Int, yRel: Int, points: List<Point>) {
@@ -27,7 +26,7 @@ class ControlControllerNVM(renderer: NextionRenderer) : RendereableNVM(renderer)
     override fun checkMatch(data: ByteArray): Boolean {
         return data.size == 4 &&
                 data[0] == RequestType.Data.dataByte &&
-                data[1] == EntityType.InterfaceValueOfController.dataByte
+                data[1] == EntityType.InterfaceValueOfColor.dataByte
     }
 
     override fun control(data: ByteArray) {
@@ -36,18 +35,12 @@ class ControlControllerNVM(renderer: NextionRenderer) : RendereableNVM(renderer)
         val instanceIdLow = data[2]
         val instanceIdHigh = data[3]
         val instanceId: UInt = instanceIdHigh.toUByte()*256U + instanceIdLow.toUByte()
-        if (instanceId == 2U) {
-                renderer.render("titleTxt.txt=\"Controller 10XPf\"")
-                renderer.render("minValTxt.txt=\"10°C\"")
-                renderer.render("maxValTxt.txt=\"40°C\"")
-                renderer.render("vis markerTxt,1")
-                renderer.render("unitTxt.txt=\"°C\"")
-                renderer.render("step.val=50") //0.5°C
-                renderer.render("valSlr.maxval=60") //(40-10)*2... steps per range
-                renderer.render("valSlr.val=4") //min val + 4 steps
-                renderer.render("valueTxt.val=1200")
+        if (instanceId == 3U) {
+                renderer.render("titleTxt.txt=\"Lamp 20X\"")
+                renderer.render("hueSlr.val=124") //min val + 4 steps
+                renderer.render("brightSlr.val=90")
 
-                renderImageToNextion(174, 57, atticIcon)
+                renderImageToNextion(174, 57, buttonIcon)
         }
 
         renderer.render("vis loadingBtn,0")

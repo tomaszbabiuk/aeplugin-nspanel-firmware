@@ -23,7 +23,7 @@ class ControllerSelectedNVM(renderer: NextionRenderer) : RendereableNVM(renderer
         val valueB3 = data[6]
         val valueMSB = data[7]
         val value = valueMSB* 16777216 + valueB3*65536 + valueB2*256 + valueLSB
-        println("Value selected, instance id=$instanceId, state slot no=$value")
+        println("Value selected, instance id=$instanceId, value=$value")
         renderer.render("page control")
     }
 }

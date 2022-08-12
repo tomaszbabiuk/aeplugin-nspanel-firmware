@@ -29,11 +29,11 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
     override fun control(data: ByteArray) {
         val page = data[2]
         if (page == 0x00.toByte()) {
-            renderControlSlot(0, 100,0,"Recuperator", "---", "II gear", true)
-            renderControlSlot(1, 200,1,"Radiator valve", "Opening state: 12%", "Regulation", false)
-            renderControlSlot(2, 300,0,"Ceiling lamp", "12W", "On", true)
-            renderControlSlot(3, 400,0,"Desk lamp", "0W", "Off", false)
-            renderControlSlot(4, 500,1,"Door", "---", "Closed", false)
+            renderControlSlot(0, 1,0,"Recuperator", "---", "II gear", true)
+            renderControlSlot(1, 2,1,"Radiator valve", "Opening state: 12%", "Regulation", false)
+            renderControlSlot(2, 3,2,"Ceiling lamp", "12W", "On", true)
+            renderControlSlot(3, 4,0,"Desk lamp", "0W", "Off", false)
+            renderControlSlot(4, 5,1,"Door", "---", "Closed", false)
 
             renderImageToNextion(65, 47, atticIcon)
             renderImageToNextion(65, 102, buttonIcon)
@@ -42,8 +42,8 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
             renderImageToNextion(65, 267, bullhornIcon)
             renderPager(prevEnabled = false, nextEnabled = true)
         } else {
-            renderControlSlot(0, 600,0,"Window contactron", "---", "Disarmed", true)
-            renderControlSlot(1, 700,0,"Motion sensor", "---", "Disarmed", false)
+            renderControlSlot(0, 6,0,"Window contactron", "---", "Disarmed", true)
+            renderControlSlot(1, 7,0,"Motion sensor", "---", "Disarmed", false)
             renderEmptySlot(2)
             renderEmptySlot(3)
             renderEmptySlot(4)
@@ -64,6 +64,7 @@ class ControlNVM(renderer: NextionRenderer) : RendereableNVM(renderer) {
         renderer.render("vis marker${slot}Txt,${if (signaled) "1" else "0"}")
         renderer.render("vis slot${slot}Btn,1")
         renderer.render("slot${slot}Btn.txt=\"${state}\"")
+        renderer.render("type${slot}.val=${controlType}")
     }
 
     private fun renderEmptySlot(slot: Int) {
