@@ -1,0 +1,41 @@
+{
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none"
+    },
+    "python.analysis.typeshedPaths": [
+        ".venv/Lib/python3.10/site-packages"
+    ],
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "actionButtons": {
+        "loadNpmCommands":false, // Disables automatic generation of actions for npm commands.
+        "commands": [
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "Upload main.py",
+                "singleInstance": true,
+                "command": "ampy --port /dev/tty.usbserial-210 put src/main.py",
+            },
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "Upload boot.py",
+                "singleInstance": true,
+                "command": "ampy --port /dev/tty.usbserial-210 put src/boot.py",
+            },
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "Upload nspanel.py",
+                "singleInstance": true,
+                "command": "ampy --port /dev/tty.usbserial-210 put src/nspanel.py",
+            },
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "REPL",
+                "singleInstance": true,
+                "command": "screen /dev/tty.usbserial-210 115200",
+            }
+        ]
+    }
+}
