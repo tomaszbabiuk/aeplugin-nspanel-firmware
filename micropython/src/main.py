@@ -1,10 +1,14 @@
-from machine import UART
 import time
-from nspanel import NsPanelParser
+from machine import UART
+from nextion import *
+from ae import AutomateEverythingCommandsProcessor
 
 uart = UART(2, 115200)
 uart.init(115200, bits=8, parity=None, stop=1, tx=16, rx=17)
-parser = NsPanelParser(uart)
+
+renderer = NextionRenderer(uart)
+processor = AutomateEverythingCommandsProcessor(renderer)
+parser = NextionParser(uart, processor)
 
 while True:
     parser.readAndParse()

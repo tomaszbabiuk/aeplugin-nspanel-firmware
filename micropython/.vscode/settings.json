@@ -26,9 +26,15 @@
             },
             {
                 "cwd": "${workspaceFolder}",
-                "name": "Upload nspanel.py",
+                "name": "Upload nextion.py",
                 "singleInstance": true,
-                "command": "ampy --port /dev/tty.usbserial-210 put src/nspanel.py",
+                "command": "ampy --port /dev/tty.usbserial-210 put src/nextion.py",
+            },
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "Upload ae.py",
+                "singleInstance": true,
+                "command": "ampy --port /dev/tty.usbserial-210 put src/ae.py",
             },
             {
                 "cwd": "${workspaceFolder}",
