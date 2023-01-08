@@ -1,5 +1,6 @@
 from micropython import const
 from nextion import *
+import network
 
 RequestType_Data = const(0x00)
 RequestType_UISelection = const (0x01)
@@ -17,19 +18,37 @@ EntityType_ValueSelection = const(0x09)
 EntityType_InterfaceValueOfColor = const(0x0A)
 EntityType_ColorSelection = const(0x0B)
 
+
+
 class WiFiScanNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN):
+        super().__init__(renderer)
+        self.wlan = wlan
+
     def checkMatch(self, data: bytearray):
         return len(data) == 2 and data[0] == RequestType_Data and data[1] == EntityType_SSIDs
 
     def control(self, data: bytearray):
-        self.renderer.render('wifiSsid.scanResult.txt="network1;network2;network3"')
+        scans = self.wlan.scan()
+        self.renderer.render('wifiSsid.scanResult.txt="', insertDelimeter = False)
+        first = True
+        for scan in scans:
+            if not first:
+                self.renderer.render(';', insertDelimeter = False)
+            
+            self.renderer.render(scan[0], insertDelimeter = False)
+            first = False
+
+        self.renderer.render('"')
         self.renderer.render('page wifiSsid')
 
 
 class AutomateEverythingCommandsProcessor(CommandsProcessor):
 
-    def __init__(self, renderer: NextionRenderer) -> None:
-        self.processors = [ WiFiScanNVM(renderer) ]
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN) -> None:
+        self.processors = []
+        wifiScanNVM = WiFiScanNVM(renderer, wlan)
+        self.processors.append(wifiScanNVM)
 
     def process(self, command: bytearray):
         for processor in self.processors:
