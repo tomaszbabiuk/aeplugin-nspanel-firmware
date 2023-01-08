@@ -33,8 +33,12 @@
             {
                 "cwd": "${workspaceFolder}",
                 "name": "Upload ae.py",
-                "singleInstance": true,
-                "command": "ampy --port /dev/tty.usbserial-210 put src/ae.py",
+                "singleInstance": false,
+                "command": "echo",
+                "extraCommands": [
+                    "ampy --port /dev/tty.usbserial-210 put src/nvm",
+                    "ampy --port /dev/tty.usbserial-210 ls /nvm"
+                ]
             },
             {
                 "cwd": "${workspaceFolder}",
