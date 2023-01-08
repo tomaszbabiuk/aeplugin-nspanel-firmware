@@ -36,8 +36,8 @@
                 "singleInstance": false,
                 "command": "echo",
                 "extraCommands": [
-                    "ampy --port /dev/tty.usbserial-210 put src/nvm",
-                    "ampy --port /dev/tty.usbserial-210 ls /nvm"
+                    "ampy --port /dev/tty.usbserial-210 put src/ae.py",
+                    "ampy --port /dev/tty.usbserial-210 ls"
                 ]
             },
             {
