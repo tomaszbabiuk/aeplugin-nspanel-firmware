@@ -5,6 +5,14 @@ class CommandsProcessor():
     def process(self, command: bytearray):
         pass
 
+class IconResolver:
+    def resolve(self, name: str) -> list:
+        # TODO
+        #     x0  x1  y1  y2
+        p1 = (10, 10, 20, 20)
+        p2 = (15, 15, 30, 30)
+        return [(p1, p2)]
+        
 class NextionRenderer:
     def __init__(self, uart: UART) -> None:
         self.uart = uart
@@ -14,6 +22,16 @@ class NextionRenderer:
         if insertDelimeter:
             self.uart.write(bytearray([0xff, 0xff, 0xff]))
 
+class NextionImageRenderer:
+    def __init__(self, renderer: NextionRenderer, iconResolver: IconResolver) -> None:
+        self.renderer = renderer
+        self.iconResolver = iconResolver
+
+    def renderImageToNextion(self, xRel: int, yRel: int, name):
+        lines = self.iconResolver.resolve(name)
+        for it in lines:
+            line = "line {},{},{},{},WHITE".format(xRel + it[0], yRel + it[1], xRel + it[2], yRel + it[3])
+            self.renderer.render(line)
 
 class NextionParser:
     buffer = bytearray()

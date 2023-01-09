@@ -37,6 +37,10 @@ class ColorSelectedNVM(NextionViewModel):
 
 
 class ControlColorNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
+        super().__init__(renderer)
+        self.imageRenderer = imageRenderer
+
     def checkMatch(self, data: bytearray):
         return len(data) == 4 and data[0] == RequestType_Data and data[1] == EntityType_InterfaceValueOfColor
 
@@ -50,14 +54,17 @@ class ControlColorNVM(NextionViewModel):
             self.renderer.render('titleTxt.txt="Lamp 20X"')
             self.renderer.render("hueSlr.val=124") #min val + 4 steps
             self.renderer.render("brightSlr.val=90")
-            #TODO
-            #renderImageToNextion(174, 57, buttonIcon)
+            self.imageRenderer.renderImageToNextion(174, 57, "buttonIcon")
 
         self.renderer.render("vis loadingBtn,0")
         self.renderer.render("vis applyBtn,1")
 
 
 class ControlControllerNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
+        super().__init__(renderer)
+        self.imageRenderer = imageRenderer
+
     def checkMatch(self, data: bytearray):
         return len(data) == 4 and data[0] == RequestType_Data and EntityType_InterfaceValueOfController
 
@@ -77,8 +84,7 @@ class ControlControllerNVM(NextionViewModel):
             self.renderer.render("valSlr.maxval=60") #(40-10)*2... steps per range
             self.renderer.render("valSlr.val=4") #min val + 4 steps
             self.renderer.render("valueTxt.val=1200")
-            #TODO
-            #renderImageToNextion(174, 57, atticIcon)
+            self.imageRenderer.renderImageToNextion(174, 57, "atticIcon")
 
         self.renderer.render("vis loadingBtn,0")
         self.renderer.render("vis applyBtn,1")
@@ -102,6 +108,10 @@ class ControllerSelectedNVM(NextionViewModel):
 
 
 class ControlNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
+        super().__init__(renderer)
+        self.imageRenderer = imageRenderer
+
     def checkMatch(self, data: bytearray):
         return len(data) == 3 and data[0] == RequestType_Data and data[1] == EntityType_DevicesPage
 
@@ -110,14 +120,6 @@ class ControlNVM(NextionViewModel):
             return 1
         else:
             return 0
-
-    def renderImageToNextion(self, xRel: int, yRel: int, points: list):
-        #TODO: handle images
-        # points.forEach {
-        #     val line = "line ${xRel + it.x0},${yRel + it.y0},${xRel + it.x1},${yRel + it.y1},WHITE"
-        #     renderer.render(line)
-        # }
-        pass
 
     def renderPager(self, prevEnabled: bool, nextEnabled: bool):
         prevEnabled.to_bytes
@@ -153,11 +155,11 @@ class ControlNVM(NextionViewModel):
             self.renderControlSlot(3, 4,0,"Desk lamp", "0W", "Off", False)
             self.renderControlSlot(4, 5,1,"Door", "---", "Closed", False)
 
-            # self.renderImageToNextion(65, 47, atticIcon)
-            # self.renderImageToNextion(65, 102, buttonIcon)
-            # self.renderImageToNextion(65, 157, boilerIcon)
-            # self.renderImageToNextion(65, 212, blindsIcon)
-            # self.renderImageToNextion(65, 267, bullhornIcon)
+            self.imageRenderer.renderImageToNextion(65, 47, "atticIcon")
+            self.imageRenderer.renderImageToNextion(65, 102, "buttonIcon")
+            self.imageRenderer.renderImageToNextion(65, 157, "boilerIcon")
+            self.imageRenderer.renderImageToNextion(65, 212, "blindsIcon")
+            self.imageRenderer.renderImageToNextion(65, 267, "bullhornIcon")
             self.renderPager(prevEnabled = False, nextEnabled = True)
         else:
             self.renderControlSlot(0, 6,0,"Window contactron", "---", "Disarmed", True)
@@ -166,12 +168,16 @@ class ControlNVM(NextionViewModel):
             self.renderEmptySlot(3)
             self.renderEmptySlot(4)
 
-            # self.renderImageToNextion(65, 47, atticIcon)
-            # self.renderImageToNextion(65, 102, buttonIcon)
+            self.imageRenderer.renderImageToNextion(65, 47, "atticIcon")
+            self.imageRenderer.renderImageToNextion(65, 102, "buttonIcon")
             self.renderPager(prevEnabled = True, nextEnabled = False)
 
 
 class ControlStateNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
+        super().__init__(renderer)
+        self.imageRenderer = imageRenderer
+
     def checkMatch(self, data: bytearray):
         return len(data) == 5 and data[0] == RequestType_Data and data[1] == EntityType_InterfaceValueOfState
 
@@ -187,8 +193,7 @@ class ControlStateNVM(NextionViewModel):
                 self.renderer.render("titleTxt.txt=\"Recuperator\"")
                 self.renderer.render("intValTxt.txt=\"II gear\"")
                 self.renderer.render("vis markerTxt,1")
-                #TODO
-                #renderImageToNextion(63, 47, atticIcon)
+                self.imageRenderer.renderImageToNextion(63, 47, "atticIcon")
 
                 self.renderer.render("vis slot0Btn,1")
                 self.renderer.render("slot0Btn.txt=\"Gear I\"")
@@ -225,8 +230,7 @@ class ControlStateNVM(NextionViewModel):
                 self.renderer.render("titleTxt.txt=\"Radiator valve\"")
                 self.renderer.render("intValTxt.txt=\"Regulation\"")
                 self.renderer.render("vis markerTxt,0")
-                #TODO
-                #renderImageToNextion(63, 47, buttonIcon)
+                self.imageRenderer.renderImageToNextion(63, 47, "buttonIcon")
 
         self.renderer.render("vis loadingBtn,0")
 
@@ -388,25 +392,25 @@ class LanguageSelectVM(NextionViewModel):
 
 class AutomateEverythingCommandsProcessor(CommandsProcessor):
 
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN) -> None:
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, imageRenderer: NextionImageRenderer) -> None:
         self.processors = []
 
         colorSelectedNVM = ColorSelectedNVM(renderer)
         self.processors.append(colorSelectedNVM)
 
-        controlColorNVM = ControlColorNVM(renderer)
+        controlColorNVM = ControlColorNVM(renderer, imageRenderer)
         self.processors.append(controlColorNVM)
 
-        controlControllerNVM = ControlControllerNVM(renderer)
+        controlControllerNVM = ControlControllerNVM(renderer, imageRenderer)
         self.processors.append(controlControllerNVM)
 
         controllerSelectedNVM = ControllerSelectedNVM(renderer)
         self.processors.append(controllerSelectedNVM)
 
-        controlNVM = ControlNVM(renderer)
+        controlNVM = ControlNVM(renderer, imageRenderer)
         self.processors.append(controlNVM)
 
-        controlStateNVM = ControlStateNVM(renderer)
+        controlStateNVM = ControlStateNVM(renderer, imageRenderer)
         self.processors.append(controlStateNVM)
 
         inboxDetailsNVM = InboxDetailsNVM(renderer)
