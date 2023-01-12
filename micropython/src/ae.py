@@ -1,7 +1,9 @@
 from micropython import const
+from credentialsmanager import CredentialsManager
 from nextion import *
 
 import network
+import time
 
 RequestType_Data = const(0x00)
 RequestType_UISelection = const (0x01)
@@ -122,7 +124,6 @@ class ControlNVM(NextionViewModel):
             return 0
 
     def renderPager(self, prevEnabled: bool, nextEnabled: bool):
-        prevEnabled.to_bytes
         self.renderer.render("vis prevPageBtn,{}".format(self.boolToNumber(prevEnabled)))
         self.renderer.render("vis nextPageBtn,{}".format(self.boolToNumber(nextEnabled)))
         self.renderer.render("vis loadingBtn,0")
@@ -325,19 +326,33 @@ class StateSelectedNVM(NextionViewModel):
 
 
 class WifiPasswordNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, credentialsManager: CredentialsManager):
+        super().__init__(renderer)
+        self.wlan = wlan
+        self.credentialsManager = credentialsManager
+
     def checkMatch(self, data: bytearray):
         return len(data) > 2 and data[0] == RequestType_UISelection and data[1] == EntityType_WiFiPassword
 
     def control(self, data: bytearray):
         password = data[2:]
         print("Typed password={}".format(password))
-        f = open('password','w')
-        f.write(str(password))
-        f.close()
+        self.credentialsManager.storePassword(password)
         self.renderer.render("page connecting")
-        # the control page should be called when the http/mqtt server gets data
-        # Thread.sleep(3000)
-        # renderer.render("page control")
+
+        self.wlan.disconnect()
+        self.wlan.connect(self.credentialsManager.ssid.decode('utf-8'), self.credentialsManager.password.decode('utf-8'))
+
+        for x in range(1, 10):
+            print("Checking network connection {}".format(x))
+            time.sleep(1)
+            if self.wlan.isconnected():
+                break
+
+        if self.wlan.isconnected():
+            self.renderer.render("page control")
+        else:
+            self.renderer.render("page connectionLost")
 
 
 class WiFiScanNVM(NextionViewModel):
@@ -364,15 +379,17 @@ class WiFiScanNVM(NextionViewModel):
 
 
 class WiFiSsidNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, credentialsManager: CredentialsManager):
+        super().__init__(renderer)
+        self.credentialsManager = credentialsManager
+
     def checkMatch(self, data: bytearray):
         return len(data) > 2 and data[0] == RequestType_UISelection and data[1] == EntityType_SSIDSelection
     
     def control(self, data: bytearray):
         ssid = data[2:]
         print("Selected ssid={}".format(ssid))
-        f = open('ssid','w')
-        f.write(str(ssid))
-        f.close()
+        self.credentialsManager.storeSsid(ssid)
         self.renderer.render("page wifiPassword")
 
 
@@ -392,7 +409,7 @@ class LanguageSelectVM(NextionViewModel):
 
 class AutomateEverythingCommandsProcessor(CommandsProcessor):
 
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, imageRenderer: NextionImageRenderer) -> None:
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, imageRenderer: NextionImageRenderer, credentialsManager: CredentialsManager) -> None:
         self.processors = []
 
         colorSelectedNVM = ColorSelectedNVM(renderer)
@@ -422,13 +439,13 @@ class AutomateEverythingCommandsProcessor(CommandsProcessor):
         stateSelectedNVM = StateSelectedNVM(renderer)
         self.processors.append(stateSelectedNVM)
 
-        wiFiPasswordNVM = WifiPasswordNVM(renderer)
+        wiFiPasswordNVM = WifiPasswordNVM(renderer, wlan, credentialsManager)
         self.processors.append(wiFiPasswordNVM)
 
         wifiScanNVM = WiFiScanNVM(renderer, wlan)
         self.processors.append(wifiScanNVM)
 
-        wiFiSsidNVM = WiFiSsidNVM(renderer)
+        wiFiSsidNVM = WiFiSsidNVM(renderer, credentialsManager)
         self.processors.append(wiFiSsidNVM)
 
         languageSelectNVM = LanguageSelectVM(renderer)

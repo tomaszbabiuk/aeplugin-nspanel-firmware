@@ -14,6 +14,12 @@
         "commands": [
             {
                 "cwd": "${workspaceFolder}",
+                "name": "REPL",
+                "singleInstance": true,
+                "command": "screen /dev/tty.usbserial-210 115200",
+            },
+            {
+                "cwd": "${workspaceFolder}",
                 "name": "Upload main.py",
                 "singleInstance": true,
                 "command": "ampy --port /dev/tty.usbserial-210 put src/main.py",
@@ -42,10 +48,14 @@
             },
             {
                 "cwd": "${workspaceFolder}",
-                "name": "REPL",
-                "singleInstance": true,
-                "command": "screen /dev/tty.usbserial-210 115200",
-            }
+                "name": "Upload utilities",
+                "singleInstance": false,
+                "command": "echo",
+                "extraCommands": [
+                    "ampy --port /dev/tty.usbserial-210 put src/credentialsmanager.py",
+                    "ampy --port /dev/tty.usbserial-210 ls"
+                ]
+            },
         ]
     }
 }

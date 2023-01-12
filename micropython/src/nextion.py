@@ -1,18 +1,17 @@
 from machine import UART
-from micropython import const
 
 class CommandsProcessor():
     def process(self, command: bytearray):
         pass
 
 class IconResolver:
-    def resolve(self, name: str) -> list:
+    def resolve(self, name: str):
         # TODO
         #     x0  x1  y1  y2
         p1 = (10, 10, 20, 20)
         p2 = (15, 15, 30, 30)
-        return [(p1, p2)]
-        
+        return [p1, p2]
+
 class NextionRenderer:
     def __init__(self, uart: UART) -> None:
         self.uart = uart

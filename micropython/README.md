@@ -2,7 +2,7 @@ Required VSCode extensions:
 * https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance
 * https://marketplace.visualstudio.com/items?itemName=ms-python.python
 * https://marketplace.visualstudio.com/items?itemName=jkearins.action-buttons-ext
-* ttps://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow
+* https://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow
 * Disable or uninstall PyLint extension (it colllides with Pylance)
 
 Required python packages
