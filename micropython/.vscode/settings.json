@@ -20,15 +20,14 @@
             },
             {
                 "cwd": "${workspaceFolder}",
-                "name": "Upload main.py",
+                "name": "Upload boot and main",
                 "singleInstance": true,
-                "command": "ampy --port /dev/tty.usbserial-210 put src/main.py",
-            },
-            {
-                "cwd": "${workspaceFolder}",
-                "name": "Upload boot.py",
-                "singleInstance": true,
-                "command": "ampy --port /dev/tty.usbserial-210 put src/boot.py",
+                "command": "echo",
+                "extraCommands": [
+                    "ampy --port /dev/tty.usbserial-210 put src/boot.py",
+                    "ampy --port /dev/tty.usbserial-210 put src/main.py",
+                    "ampy --port /dev/tty.usbserial-210 ls"
+                ]
             },
             {
                 "cwd": "${workspaceFolder}",
@@ -39,7 +38,7 @@
             {
                 "cwd": "${workspaceFolder}",
                 "name": "Upload ae.py",
-                "singleInstance": false,
+                "singleInstance": true,
                 "command": "echo",
                 "extraCommands": [
                     "ampy --port /dev/tty.usbserial-210 put src/ae.py",
@@ -49,10 +48,30 @@
             {
                 "cwd": "${workspaceFolder}",
                 "name": "Upload utilities",
-                "singleInstance": false,
+                "singleInstance": true,
                 "command": "echo",
                 "extraCommands": [
                     "ampy --port /dev/tty.usbserial-210 put src/credentialsmanager.py",
+                    "ampy --port /dev/tty.usbserial-210 ls"
+                ]
+            },
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "Upload minimal TFT",
+                "singleInstance": true,
+                "command": "echo",
+                "extraCommands": [
+                    "ampy --port /dev/tty.usbserial-210 put tft/minimal.tft",
+                    "ampy --port /dev/tty.usbserial-210 ls"
+                ]
+            },
+            {
+                "cwd": "${workspaceFolder}",
+                "name": "Upload ae TFT",
+                "singleInstance": true,
+                "command": "echo",
+                "extraCommands": [
+                    "ampy --port /dev/tty.usbserial-210 put tft/ae.tft",
                     "ampy --port /dev/tty.usbserial-210 ls"
                 ]
             },
