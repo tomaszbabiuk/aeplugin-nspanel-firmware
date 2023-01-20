@@ -21,6 +21,7 @@ EntityType_ValueSelection = const(0x09)
 EntityType_InterfaceValueOfColor = const(0x0A)
 EntityType_ColorSelection = const(0x0B)
 EntityType_LanguageSelection = const(0x1C) # Change to 0x0C after new HMI is prepared
+EntityType_ConnectionStateSelection = const(0x1D)
 
 class ColorSelectedNVM(NextionViewModel):
     def checkMatch(self, data: bytearray):
