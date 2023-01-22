@@ -51,7 +51,7 @@
                 "singleInstance": true,
                 "command": "echo",
                 "extraCommands": [
-                    "ampy --port /dev/tty.usbserial-210 put src/credentialsmanager.py",
+                    "ampy --port /dev/tty.usbserial-210 put src/config.py",
                     "ampy --port /dev/tty.usbserial-210 ls"
                 ]
             },
