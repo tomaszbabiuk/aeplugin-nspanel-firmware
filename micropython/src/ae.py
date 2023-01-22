@@ -20,8 +20,10 @@ EntityType_InterfaceValueOfController = const(0x08)
 EntityType_ValueSelection = const(0x09)
 EntityType_InterfaceValueOfColor = const(0x0A)
 EntityType_ColorSelection = const(0x0B)
-EntityType_LanguageSelection = const(0x1C) # Change to 0x0C after new HMI is prepared
-EntityType_ConnectionStateSelection = const(0x1D)
+EntityType_LanguageSelection = const(0x0C) # Change to 0x0C after new HMI is prepared
+EntityType_ConnectionStateSelection = const(0x0D)
+EntityType_LeftButtonConfig = const(0x0E)
+EntityType_RightButtonConfig = const(0x0F)
 
 class ColorSelectedNVM(NextionViewModel):
     def checkMatch(self, data: bytearray):
@@ -395,8 +397,6 @@ class WiFiSsidNVM(NextionViewModel):
 
 
 class LanguageSelectVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer):
-        super().__init__(renderer)
 
     def checkMatch(self, data: bytearray):
         return len(data) == 3 and data[0] == RequestType_UISelection and data[1] == EntityType_LanguageSelection
@@ -406,6 +406,28 @@ class LanguageSelectVM(NextionViewModel):
         f = open('lang','w')
         f.write(str(lang))
         f.close()
+
+
+class LeftButtonConfigNVM(NextionViewModel):
+
+    def checkMatch(self, data: bytearray):
+        return len(data) == 4 and data[0] == RequestType_UISelection and data[1] == EntityType_LeftButtonConfig
+
+    def control(self, data: bytearray):
+        action = data[2]
+        time = data[3]
+        print("Left button configured, action: {}, time: {}".format(action, time))
+
+
+class RightButtonConfigNVM(NextionViewModel):
+
+    def checkMatch(self, data: bytearray):
+        return len(data) == 4 and data[0] == RequestType_UISelection and data[1] == EntityType_RightButtonConfig
+
+    def control(self, data: bytearray):
+        action = data[2]
+        time = data[3]
+        print("Right button configured, action: {}, time: {}".format(action, time))
 
 
 class AutomateEverythingCommandsProcessor(CommandsProcessor):
@@ -451,6 +473,13 @@ class AutomateEverythingCommandsProcessor(CommandsProcessor):
 
         languageSelectNVM = LanguageSelectVM(renderer)
         self.processors.append(languageSelectNVM)
+
+        leftButtonConfigNVM = LeftButtonConfigNVM(renderer)
+        self.processors.append(leftButtonConfigNVM)
+
+        rightButtonConfigNVM = RightButtonConfigNVM(renderer)
+        self.processors.append(rightButtonConfigNVM)
+
 
     def process(self, command: bytearray):
         hasMatch = False

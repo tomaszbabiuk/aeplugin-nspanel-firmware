@@ -57,24 +57,24 @@
             },
             {
                 "cwd": "${workspaceFolder}",
-                "name": "Upload minimal TFT",
+                "name": "Upload setup TFT",
                 "singleInstance": true,
                 "command": "echo",
                 "extraCommands": [
-                    "ampy --port /dev/tty.usbserial-210 put tft/minimal.tft",
+                    "ampy --port /dev/tty.usbserial-210 put tft/setup.tft",
                     "ampy --port /dev/tty.usbserial-210 ls"
                 ]
             },
             {
                 "cwd": "${workspaceFolder}",
-                "name": "Upload ae TFT",
+                "name": "Upload control TFT",
                 "singleInstance": true,
                 "command": "echo",
                 "extraCommands": [
-                    "ampy --port /dev/tty.usbserial-210 put tft/ae.tft",
+                    "ampy --port /dev/tty.usbserial-210 put tft/control.tft",
                     "ampy --port /dev/tty.usbserial-210 ls"
                 ]
-            },
+            }
         ]
     }
 }
