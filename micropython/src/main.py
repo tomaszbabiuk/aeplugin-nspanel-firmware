@@ -18,6 +18,6 @@ imageRenderer = NextionImageRenderer(renderer, iconResolver)
 processor = AutomateEverythingCommandsProcessor(renderer, wlan, imageRenderer, credentialsManager)
 parser = NextionParser(uart, processor)
 
-while True:
-    parser.readAndParse()
-    time.sleep_ms(100)
+# while True:
+#     parser.readAndParse()
+#     time.sleep_ms(100)
