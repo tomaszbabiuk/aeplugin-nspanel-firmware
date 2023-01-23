@@ -3,7 +3,7 @@ Required VSCode extensions:
 * https://marketplace.visualstudio.com/items?itemName=ms-python.python
 * https://marketplace.visualstudio.com/items?itemName=jkearins.action-buttons-ext
 * https://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow
-* Disable or uninstall PyLint extension (it colllides with Pylance)
+* Disable or uninstall the PyLint extension (it collides with Pylance)
 
 Required python packages
 * pip install -U micropython-esp32-stubs

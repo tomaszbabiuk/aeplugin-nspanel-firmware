@@ -1,5 +1,5 @@
 from micropython import const
-from credentialsmanager import CredentialsManager
+from config import ConfigManager
 from nextion import *
 
 import network
@@ -20,7 +20,7 @@ EntityType_InterfaceValueOfController = const(0x08)
 EntityType_ValueSelection = const(0x09)
 EntityType_InterfaceValueOfColor = const(0x0A)
 EntityType_ColorSelection = const(0x0B)
-EntityType_LanguageSelection = const(0x0C) # Change to 0x0C after new HMI is prepared
+EntityType_LanguageSelection = const(0x0C)
 EntityType_ConnectionStateSelection = const(0x0D)
 EntityType_LeftButtonConfig = const(0x0E)
 EntityType_RightButtonConfig = const(0x0F)
@@ -329,10 +329,10 @@ class StateSelectedNVM(NextionViewModel):
 
 
 class WifiPasswordNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, credentialsManager: CredentialsManager):
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, configManager: ConfigManager):
         super().__init__(renderer)
         self.wlan = wlan
-        self.credentialsManager = credentialsManager
+        self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
         return len(data) > 2 and data[0] == RequestType_UISelection and data[1] == EntityType_WiFiPassword
@@ -340,11 +340,12 @@ class WifiPasswordNVM(NextionViewModel):
     def control(self, data: bytearray):
         password = data[2:]
         print("Typed password={}".format(password))
-        self.credentialsManager.storePassword(password)
+        self.configManager.setPassword(password)
         self.renderer.render("page connecting")
 
         self.wlan.disconnect()
-        self.wlan.connect(self.credentialsManager.ssid.decode('utf-8'), self.credentialsManager.password.decode('utf-8'))
+        print("TODO")
+        #self.wlan.connect(self.configManager.ssid.decode('utf-8'), self.configManager.password.decode('utf-8'))
 
         for x in range(1, 10):
             print("Checking network connection {}".format(x))
@@ -382,9 +383,9 @@ class WiFiScanNVM(NextionViewModel):
 
 
 class WiFiSsidNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, credentialsManager: CredentialsManager):
+    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
         super().__init__(renderer)
-        self.credentialsManager = credentialsManager
+        self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
         return len(data) > 2 and data[0] == RequestType_UISelection and data[1] == EntityType_SSIDSelection
@@ -392,23 +393,27 @@ class WiFiSsidNVM(NextionViewModel):
     def control(self, data: bytearray):
         ssid = data[2:]
         print("Selected ssid={}".format(ssid))
-        self.credentialsManager.storeSsid(ssid)
+        self.configManager.setSsid(ssid)
         self.renderer.render("page wifiPassword")
 
 
 class LanguageSelectVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
+        super().__init__(renderer)
+        self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
         return len(data) == 3 and data[0] == RequestType_UISelection and data[1] == EntityType_LanguageSelection
 
     def control(self, data: bytearray):
         lang = data[2]
-        f = open('lang','w')
-        f.write(str(lang))
-        f.close()
+        self.configManager.setLanguage(lang)
 
 
 class LeftButtonConfigNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
+        super().__init__(renderer)
+        self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
         return len(data) == 4 and data[0] == RequestType_UISelection and data[1] == EntityType_LeftButtonConfig
@@ -416,10 +421,14 @@ class LeftButtonConfigNVM(NextionViewModel):
     def control(self, data: bytearray):
         action = data[2]
         time = data[3]
+        self.configManager.setLeftButtonConfig(action, time)
         print("Left button configured, action: {}, time: {}".format(action, time))
 
 
 class RightButtonConfigNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
+        super().__init__(renderer)
+        self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
         return len(data) == 4 and data[0] == RequestType_UISelection and data[1] == EntityType_RightButtonConfig
@@ -427,12 +436,13 @@ class RightButtonConfigNVM(NextionViewModel):
     def control(self, data: bytearray):
         action = data[2]
         time = data[3]
+        self.configManager.setRightButtonConfig(action, time)
         print("Right button configured, action: {}, time: {}".format(action, time))
 
 
 class AutomateEverythingCommandsProcessor(CommandsProcessor):
 
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, imageRenderer: NextionImageRenderer, credentialsManager: CredentialsManager) -> None:
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, imageRenderer: NextionImageRenderer, configManager: ConfigManager) -> None:
         self.processors = []
 
         colorSelectedNVM = ColorSelectedNVM(renderer)
@@ -462,22 +472,22 @@ class AutomateEverythingCommandsProcessor(CommandsProcessor):
         stateSelectedNVM = StateSelectedNVM(renderer)
         self.processors.append(stateSelectedNVM)
 
-        wiFiPasswordNVM = WifiPasswordNVM(renderer, wlan, credentialsManager)
+        wiFiPasswordNVM = WifiPasswordNVM(renderer, wlan, configManager)
         self.processors.append(wiFiPasswordNVM)
 
         wifiScanNVM = WiFiScanNVM(renderer, wlan)
         self.processors.append(wifiScanNVM)
 
-        wiFiSsidNVM = WiFiSsidNVM(renderer, credentialsManager)
+        wiFiSsidNVM = WiFiSsidNVM(renderer, configManager)
         self.processors.append(wiFiSsidNVM)
 
-        languageSelectNVM = LanguageSelectVM(renderer)
+        languageSelectNVM = LanguageSelectVM(renderer, configManager)
         self.processors.append(languageSelectNVM)
 
-        leftButtonConfigNVM = LeftButtonConfigNVM(renderer)
+        leftButtonConfigNVM = LeftButtonConfigNVM(renderer, configManager)
         self.processors.append(leftButtonConfigNVM)
 
-        rightButtonConfigNVM = RightButtonConfigNVM(renderer)
+        rightButtonConfigNVM = RightButtonConfigNVM(renderer, configManager)
         self.processors.append(rightButtonConfigNVM)
 
 
