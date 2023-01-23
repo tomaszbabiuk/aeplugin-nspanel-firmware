@@ -13,8 +13,8 @@ Field_RightButtonTimeInSec = const("rightButtonTimeInSec")
 
 class ConfigManager:
     def __init__(self) -> None:
-        self.password = ""
-        self.ssid = ""
+        self.password = bytearray()
+        self.ssid = bytearray()
         self.lang = 0
         self.leftButtonAction = 0
         self.leftButtonTime = 0
@@ -24,8 +24,14 @@ class ConfigManager:
     def setPassword(self, password: bytearray) -> None:
         self.password = password
 
+    def getPassword(self) -> str:
+        return self.password.decode('utf-8')
+
     def setSsid(self, ssid: bytearray) -> None:
         self.ssid = ssid
+
+    def getSsid(self) -> str:
+        return self.ssid.decode('utf-8')
 
     def setLanguage(self, lang: int) -> None:
         self.lang = lang
@@ -48,10 +54,12 @@ class ConfigManager:
     def load(self):
         with open(Config_Filename, "r") as config_file:
             config = json.load(config_file)
-            print(config)
-            # print("Language: {}".format(config[Field_Language]))
-            # print("SSID: {}".format(config[Field_Language]))
-            # print("Password: {}".format(config[Field_Language]))
+            
+            self.language = config[Field_Language]
+            print(self.language)
+
+            self.ssid = config[Field_SSID]
+            print(self.ssid)
             # print("LeftButtonAction: {}".format(config[Field_Language]))
             # print("LeftButtonTime: {}".format(config[Field_Language]))
             # print("RightButtonAction: {}".format(config[Field_Language]))

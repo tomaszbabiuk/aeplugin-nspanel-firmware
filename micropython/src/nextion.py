@@ -23,6 +23,43 @@ class NextionRenderer:
         if insertDelimeter:
             self.uart.write(bytearray([0xff, 0xff, 0xff]))
 
+    def _waitForACK(self):
+        while True:
+            time.sleep_ms(10)
+            b = self.uart.read()
+            if b != None:
+                if len(b) == 1 and b[0] == 0x05:
+                    break
+
+    def _beginUpload(self, fileSize: int):
+        self.render("whmi-wri {},115200,res0".format(fileSize))
+        self._waitForACK()
+
+    def _writeChunkAndWait(self, chunk: bytes):
+        self.uart.write(chunk)
+        self._waitForACK()
+
+    def update(self, fileName: str):
+        try:
+            fileInfo = os.stat(fileName)
+            fileSize = fileInfo[6]
+            if (fileSize == 0):
+                print("File {} is empty".format(fileName))
+            else:
+                print("File found: {}, {} bytes".format(fileName, fileSize))
+                self._beginUpload(fileSize)
+                total = 0
+                with open(fileName, "rb") as f:
+                    while True:
+                        chunk = f.read(4096)
+                        if not chunk:
+                            break
+                        total += len(chunk)
+                        self._writeChunkAndWait(chunk)
+        except OSError:
+            print("File does not exist")
+
+
 class NextionImageRenderer:
     def __init__(self, renderer: NextionRenderer, iconResolver: IconResolver) -> None:
         self.renderer = renderer
@@ -69,44 +106,3 @@ class NextionViewModel:
 
     def control(self, data: bytearray):
         pass
-
-class NextionFlasher():
-    def __init__(self, uart: UART) -> None:
-        self.uart = uart
-
-    def waitForACK(self):
-        while True:
-            time.sleep_ms(10)
-            b = self.uart.read()
-            if b != None:
-                if len(b) == 1 and b[0] == 0x05:
-                    break
-
-    def beginUpload(self, fileSize: int):
-        self.uart.write("whmi-wri {},115200,res0".format(fileSize))
-        self.uart.write(bytearray([0xff, 0xff, 0xff]))
-        self.waitForACK()
-
-    def writeChunkAndWait(self, chunk: bytes):
-        self.uart.write(chunk)
-        self.waitForACK()
-
-    def flash(self, fileName: str):
-        try:
-            fileInfo = os.stat(fileName)
-            fileSize = fileInfo[6]
-            if (fileSize == 0):
-                print("File {} is empty".format(fileName))
-            else:
-                print("File found: {}, {} bytes".format(fileName, fileSize))
-                self.beginUpload(fileSize)
-                total = 0
-                with open(fileName, "rb") as f:
-                    while True:
-                        chunk = f.read(4096)
-                        if not chunk:
-                            break
-                        total += len(chunk)
-                        self.writeChunkAndWait(chunk)
-        except OSError:
-            print("File does not exist")

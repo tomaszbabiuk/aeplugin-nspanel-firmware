@@ -18,12 +18,14 @@ EntityType_InterfaceValueOfState = const(0x06)
 EntityType_StateSelection = const(0x07)
 EntityType_InterfaceValueOfController = const(0x08)
 EntityType_ValueSelection = const(0x09)
+EntityType_Scaning = const(0x10)
 EntityType_InterfaceValueOfColor = const(0x0A)
 EntityType_ColorSelection = const(0x0B)
 EntityType_LanguageSelection = const(0x0C)
-EntityType_ConnectionStateSelection = const(0x0D)
+EntityType_ConnectionState = const(0x0D)
 EntityType_LeftButtonConfig = const(0x0E)
 EntityType_RightButtonConfig = const(0x0F)
+EntityType_ReadyToUpgrade = const(0x10)
 
 class ColorSelectedNVM(NextionViewModel):
     def checkMatch(self, data: bytearray):
@@ -329,9 +331,8 @@ class StateSelectedNVM(NextionViewModel):
 
 
 class WifiPasswordNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, configManager: ConfigManager):
+    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
         super().__init__(renderer)
-        self.wlan = wlan
         self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
@@ -341,11 +342,22 @@ class WifiPasswordNVM(NextionViewModel):
         password = data[2:]
         print("Typed password={}".format(password))
         self.configManager.setPassword(password)
+        self.configManager.save()
         self.renderer.render("page connecting")
 
+
+class ConnectingNVM(NextionViewModel):
+    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, configManager: ConfigManager) :
+        super().__init__(renderer)
+        self.wlan = wlan
+        self.configManager = configManager
+
+    def checkMatch(self, data: bytearray):
+        return len(data) == 2 and data[0] == RequestType_Data and data[1] == EntityType_ConnectionState
+
+    def control(self, data: bytearray):
         self.wlan.disconnect()
-        print("TODO")
-        #self.wlan.connect(self.configManager.ssid.decode('utf-8'), self.configManager.password.decode('utf-8'))
+        self.wlan.connect(self.configManager.getSsid(), self.configManager.getPassword())
 
         for x in range(1, 10):
             print("Checking network connection {}".format(x))
@@ -354,12 +366,19 @@ class WifiPasswordNVM(NextionViewModel):
                 break
 
         if self.wlan.isconnected():
-            self.renderer.render("page control")
+            self.renderer.render("page setupSuccess")
         else:
-            self.renderer.render("page connectionLost")
+            self.renderer.render("page setupFailure")
 
 
-class WiFiScanNVM(NextionViewModel):
+class SetupSuccessNVM(NextionViewModel):
+    def checkMatch(self, data: bytearray):
+        return len(data) == 2 and data[0] == RequestType_UISelection and data[1] == EntityType_ReadyToUpgrade
+
+    def control(self, data: bytearray):
+        self.renderer.update("control.tft")
+
+class WelcomeNVM(NextionViewModel):
     def __init__(self, renderer: NextionRenderer, wlan: network.WLAN):
         super().__init__(renderer)
         self.wlan = wlan
@@ -368,6 +387,7 @@ class WiFiScanNVM(NextionViewModel):
         return len(data) == 2 and data[0] == RequestType_Data and data[1] == EntityType_SSIDs
 
     def control(self, data: bytearray):
+        self.wlan.disconnect()
         scans = self.wlan.scan()
         self.renderer.render('wifiSsid.scanResult.txt="', insertDelimeter = False)
         first = True
@@ -422,7 +442,6 @@ class LeftButtonConfigNVM(NextionViewModel):
         action = data[2]
         time = data[3]
         self.configManager.setLeftButtonConfig(action, time)
-        print("Left button configured, action: {}, time: {}".format(action, time))
 
 
 class RightButtonConfigNVM(NextionViewModel):
@@ -437,7 +456,6 @@ class RightButtonConfigNVM(NextionViewModel):
         action = data[2]
         time = data[3]
         self.configManager.setRightButtonConfig(action, time)
-        print("Right button configured, action: {}, time: {}".format(action, time))
 
 
 class AutomateEverythingCommandsProcessor(CommandsProcessor):
@@ -472,11 +490,14 @@ class AutomateEverythingCommandsProcessor(CommandsProcessor):
         stateSelectedNVM = StateSelectedNVM(renderer)
         self.processors.append(stateSelectedNVM)
 
-        wiFiPasswordNVM = WifiPasswordNVM(renderer, wlan, configManager)
+        wiFiPasswordNVM = WifiPasswordNVM(renderer, configManager)
         self.processors.append(wiFiPasswordNVM)
 
-        wifiScanNVM = WiFiScanNVM(renderer, wlan)
-        self.processors.append(wifiScanNVM)
+        connectingNVM = ConnectingNVM(renderer, wlan, configManager)
+        self.processors.append(connectingNVM)
+
+        welcomeNVM = WelcomeNVM(renderer, wlan)
+        self.processors.append(welcomeNVM)
 
         wiFiSsidNVM = WiFiSsidNVM(renderer, configManager)
         self.processors.append(wiFiSsidNVM)
@@ -489,6 +510,9 @@ class AutomateEverythingCommandsProcessor(CommandsProcessor):
 
         rightButtonConfigNVM = RightButtonConfigNVM(renderer, configManager)
         self.processors.append(rightButtonConfigNVM)
+
+        setupSuccessNVM = SetupSuccessNVM(renderer)
+        self.processors.append(setupSuccessNVM)
 
 
     def process(self, command: bytearray):
