@@ -42,7 +42,7 @@ class WifiPasswordAction(NextionAction):
         print("Typed password={}".format(password))
         self.configManager.setPassword(password)
         self.configManager.save()
-        self.writer.render("page connecting")
+        self.writer.write("page connecting")
 
 
 class ConnectingAction(NextionAction):
@@ -65,9 +65,9 @@ class ConnectingAction(NextionAction):
                 break
 
         if self.wlan.isconnected():
-            self.writer.render("page setupSuccess")
+            self.writer.write("page setupSuccess")
         else:
-            self.writer.render("page setupFailure")
+            self.writer.write("page setupFailure")
 
 
 class SetupSuccessAction(NextionAction):
@@ -88,17 +88,17 @@ class WelcomeAction(NextionAction):
     def act(self, data: bytearray):
         self.wlan.disconnect()
         scans = self.wlan.scan()
-        self.writer.render('wifiSsid.scanResult.txt="', insertDelimeter = False)
+        self.writer.write('wifiSsid.scanResult.txt="', insertDelimeter = False)
         first = True
         for scan in scans:
             if not first:
-                self.writer.render(';', insertDelimeter = False)
+                self.writer.write(';', insertDelimeter = False)
             
-            self.writer.render(scan[0], insertDelimeter = False)
+            self.writer.write(scan[0], insertDelimeter = False)
             first = False
 
-        self.writer.render('"')
-        self.writer.render('page wifiSsid')
+        self.writer.write('"')
+        self.writer.write('page wifiSsid')
 
 
 class WiFiSsidAction(NextionAction):
@@ -113,7 +113,7 @@ class WiFiSsidAction(NextionAction):
         ssid = data[2:]
         print("Selected ssid={}".format(ssid))
         self.configManager.setSsid(ssid)
-        self.writer.render("page wifiPassword")
+        self.writer.write("page wifiPassword")
 
 
 class LanguageSelectAction(NextionAction):

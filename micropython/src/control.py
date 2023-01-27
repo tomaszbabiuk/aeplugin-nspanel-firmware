@@ -34,16 +34,16 @@ class IconResolver:
         p2 = (15, 15, 30, 30)
         return [p1, p2]
 
-class NextionImagewriter:
+class NextionImageWriter:
     def __init__(self, writer: NextionWriter, iconResolver: IconResolver) -> None:
         self.writer = writer
         self.iconResolver = iconResolver
 
-    def renderImageToNextion(self, xRel: int, yRel: int, name):
+    def writeImage(self, xRel: int, yRel: int, name):
         lines = self.iconResolver.resolve(name)
         for it in lines:
             line = "line {},{},{},{},WHITE".format(xRel + it[0], yRel + it[1], xRel + it[2], yRel + it[3])
-            self.writer.render(line)
+            self.writer.write(line)
 
 
 class ColorSelectedNVM(NextionAction):
@@ -59,11 +59,11 @@ class ColorSelectedNVM(NextionAction):
         valueHue = valueHueMSB*256 + valueHueLSB
         valueBrightness = data[6]
         print("Color selected, instance id={}, hue={}, brightness={}".format(instanceId, valueHue, valueBrightness))
-        self.writer.render("page control")
+        self.writer.write("page control")
 
 
 class ControlColorNVM(NextionAction):
-    def __init__(self, writer: NextionWriter, imagewriter: NextionImagewriter):
+    def __init__(self, writer: NextionWriter, imagewriter: NextionImageWriter):
         super().__init__(writer)
         self.imagewriter = imagewriter
 
@@ -71,23 +71,23 @@ class ControlColorNVM(NextionAction):
         return len(data) == 4 and data[0] == RequestType_Data and data[1] == EntityType_InterfaceValueOfColor
 
     def act(self, data: bytearray):
-        self.writer.render("vis loadingBtn,1")
+        self.writer.write("vis loadingBtn,1")
 
         instanceIdLow = data[2]
         instanceIdHigh = data[3]
         instanceId = instanceIdHigh*256 + instanceIdLow
         if instanceId == 0x03:
-            self.writer.render('titleTxt.txt="Lamp 20X"')
-            self.writer.render("hueSlr.val=124") #min val + 4 steps
-            self.writer.render("brightSlr.val=90")
-            self.imagewriter.renderImageToNextion(174, 57, "buttonIcon")
+            self.writer.write('titleTxt.txt="Lamp 20X"')
+            self.writer.write("hueSlr.val=124") #min val + 4 steps
+            self.writer.write("brightSlr.val=90")
+            self.imagewriter.writeImage(174, 57, "buttonIcon")
 
-        self.writer.render("vis loadingBtn,0")
-        self.writer.render("vis applyBtn,1")
+        self.writer.write("vis loadingBtn,0")
+        self.writer.write("vis applyBtn,1")
 
 
 class ControlControllerNVM(NextionAction):
-    def __init__(self, writer: NextionWriter, imagewriter: NextionImagewriter):
+    def __init__(self, writer: NextionWriter, imagewriter: NextionImageWriter):
         super().__init__(writer)
         self.imagewriter = imagewriter
 
@@ -95,25 +95,25 @@ class ControlControllerNVM(NextionAction):
         return len(data) == 4 and data[0] == RequestType_Data and EntityType_InterfaceValueOfController
 
     def act(self, data: bytearray):
-        self.writer.render("vis loadingBtn,1")
+        self.writer.write("vis loadingBtn,1")
 
         instanceIdLow = data[2]
         instanceIdHigh = data[3]
         instanceId = instanceIdHigh* 256 + instanceIdLow
         if instanceId == 0x02:
-            self.writer.render('titleTxt.txt="Controller 10XPf"')
-            self.writer.render('minValTxt.txt="10°C"')
-            self.writer.render('maxValTxt.txt="40°C"')
-            self.writer.render("vis markerTxt,1")
-            self.writer.render('unitTxt.txt="°C"')
-            self.writer.render("step.val=50") #0.5°C
-            self.writer.render("valSlr.maxval=60") #(40-10)*2... steps per range
-            self.writer.render("valSlr.val=4") #min val + 4 steps
-            self.writer.render("valueTxt.val=1200")
-            self.imagewriter.renderImageToNextion(174, 57, "atticIcon")
+            self.writer.write('titleTxt.txt="Controller 10XPf"')
+            self.writer.write('minValTxt.txt="10°C"')
+            self.writer.write('maxValTxt.txt="40°C"')
+            self.writer.write("vis markerTxt,1")
+            self.writer.write('unitTxt.txt="°C"')
+            self.writer.write("step.val=50") #0.5°C
+            self.writer.write("valSlr.maxval=60") #(40-10)*2... steps per range
+            self.writer.write("valSlr.val=4") #min val + 4 steps
+            self.writer.write("valueTxt.val=1200")
+            self.imagewriter.writeImage(174, 57, "atticIcon")
 
-        self.writer.render("vis loadingBtn,0")
-        self.writer.render("vis applyBtn,1")
+        self.writer.write("vis loadingBtn,0")
+        self.writer.write("vis applyBtn,1")
 
 
 class ControllerSelectedNVM(NextionAction):
@@ -130,11 +130,11 @@ class ControllerSelectedNVM(NextionAction):
         valueMSB = data[7]
         value = valueMSB* 16777216 + valueB3*65536 + valueB2*256 + valueLSB
         print("Value selected, instance id={}, value={}".format(instanceId, value))
-        self.writer.render("page control")
+        self.writer.write("page control")
 
 
 class ControlNVM(NextionAction):
-    def __init__(self, writer: NextionWriter, imagewriter: NextionImagewriter):
+    def __init__(self, writer: NextionWriter, imagewriter: NextionImageWriter):
         super().__init__(writer)
         self.imagewriter = imagewriter
 
@@ -147,59 +147,59 @@ class ControlNVM(NextionAction):
         else:
             return 0
 
-    def renderPager(self, prevEnabled: bool, nextEnabled: bool):
-        self.writer.render("vis prevPageBtn,{}".format(self.boolToNumber(prevEnabled)))
-        self.writer.render("vis nextPageBtn,{}".format(self.boolToNumber(nextEnabled)))
-        self.writer.render("vis loadingBtn,0")
+    def writePager(self, prevEnabled: bool, nextEnabled: bool):
+        self.writer.write("vis prevPageBtn,{}".format(self.boolToNumber(prevEnabled)))
+        self.writer.write("vis nextPageBtn,{}".format(self.boolToNumber(nextEnabled)))
+        self.writer.write("vis loadingBtn,0")
     
-    def renderEmptySlot(self, slot: int):
-        self.writer.render("vis background{}Txt,0".format(slot))
-        self.writer.render("vis name{}Txt,0".format(slot))
-        self.writer.render("vis desc{}Txt,0".format(slot))
-        self.writer.render("vis marker{}Txt,0".format(slot))
-        self.writer.render("vis slo${}Btn,0".format(slot))
+    def writeEmptySlot(self, slot: int):
+        self.writer.write("vis background{}Txt,0".format(slot))
+        self.writer.write("vis name{}Txt,0".format(slot))
+        self.writer.write("vis desc{}Txt,0".format(slot))
+        self.writer.write("vis marker{}Txt,0".format(slot))
+        self.writer.write("vis slo${}Btn,0".format(slot))
 
-    def renderControlSlot(self, slot: int, instanceId: int, controlType: int, name: str, description: str, state: str, signaled: bool):
-        self.writer.render("instanceId{}.val={}".format(slot, instanceId))
-        self.writer.render("vis background{}Txt,1".format(slot))
-        self.writer.render("vis name{}Txt,1".format(slot))
-        self.writer.render('name{}Txt.txt="{}"'.format(slot, name))
-        self.writer.render("vis desc{}Txt,1".format(slot))
-        self.writer.render('desc{}Txt.txt="{}"'.format(slot, description))
-        self.writer.render("vis marker{}Txt,{}".format(slot, self.boolToNumber(signaled)))
-        self.writer.render("vis slot{}Btn,1".format(slot))
-        self.writer.render('slot{}Btn.txt="{}"'.format(slot, state))
-        self.writer.render("type{}.val={}".format(slot, controlType))
+    def writeControlSlot(self, slot: int, instanceId: int, controlType: int, name: str, description: str, state: str, signaled: bool):
+        self.writer.write("instanceId{}.val={}".format(slot, instanceId))
+        self.writer.write("vis background{}Txt,1".format(slot))
+        self.writer.write("vis name{}Txt,1".format(slot))
+        self.writer.write('name{}Txt.txt="{}"'.format(slot, name))
+        self.writer.write("vis desc{}Txt,1".format(slot))
+        self.writer.write('desc{}Txt.txt="{}"'.format(slot, description))
+        self.writer.write("vis marker{}Txt,{}".format(slot, self.boolToNumber(signaled)))
+        self.writer.write("vis slot{}Btn,1".format(slot))
+        self.writer.write('slot{}Btn.txt="{}"'.format(slot, state))
+        self.writer.write("type{}.val={}".format(slot, controlType))
 
     def act(self, data: bytearray):
         page = data[2]
         if page == 0x00:
-            self.renderControlSlot(0, 1,0,"Recuperator", "---", "II gear", True)
-            self.renderControlSlot(1, 2,1,"Radiator valve", "Opening state: 12%", "Regulation", False)
-            self.renderControlSlot(2, 3,2,"Ceiling lamp", "12W", "On", True)
-            self.renderControlSlot(3, 4,0,"Desk lamp", "0W", "Off", False)
-            self.renderControlSlot(4, 5,1,"Door", "---", "Closed", False)
+            self.writeControlSlot(0, 1,0,"Recuperator", "---", "II gear", True)
+            self.writeControlSlot(1, 2,1,"Radiator valve", "Opening state: 12%", "Regulation", False)
+            self.writeControlSlot(2, 3,2,"Ceiling lamp", "12W", "On", True)
+            self.writeControlSlot(3, 4,0,"Desk lamp", "0W", "Off", False)
+            self.writeControlSlot(4, 5,1,"Door", "---", "Closed", False)
 
-            self.imagewriter.renderImageToNextion(65, 47, "atticIcon")
-            self.imagewriter.renderImageToNextion(65, 102, "buttonIcon")
-            self.imagewriter.renderImageToNextion(65, 157, "boilerIcon")
-            self.imagewriter.renderImageToNextion(65, 212, "blindsIcon")
-            self.imagewriter.renderImageToNextion(65, 267, "bullhornIcon")
-            self.renderPager(prevEnabled = False, nextEnabled = True)
+            self.imagewriter.writeImage(65, 47, "atticIcon")
+            self.imagewriter.writeImage(65, 102, "buttonIcon")
+            self.imagewriter.writeImage(65, 157, "boilerIcon")
+            self.imagewriter.writeImage(65, 212, "blindsIcon")
+            self.imagewriter.writeImage(65, 267, "bullhornIcon")
+            self.writePager(prevEnabled = False, nextEnabled = True)
         else:
-            self.renderControlSlot(0, 6,0,"Window contactron", "---", "Disarmed", True)
-            self.renderControlSlot(1, 7,0,"Motion sensor", "---", "Disarmed", False)
-            self.renderEmptySlot(2)
-            self.renderEmptySlot(3)
-            self.renderEmptySlot(4)
+            self.writeControlSlot(0, 6,0,"Window contactron", "---", "Disarmed", True)
+            self.writeControlSlot(1, 7,0,"Motion sensor", "---", "Disarmed", False)
+            self.writeEmptySlot(2)
+            self.writeEmptySlot(3)
+            self.writeEmptySlot(4)
 
-            self.imagewriter.renderImageToNextion(65, 47, "atticIcon")
-            self.imagewriter.renderImageToNextion(65, 102, "buttonIcon")
-            self.renderPager(prevEnabled = True, nextEnabled = False)
+            self.imagewriter.writeImage(65, 47, "atticIcon")
+            self.imagewriter.writeImage(65, 102, "buttonIcon")
+            self.writePager(prevEnabled = True, nextEnabled = False)
 
 
 class ControlStateNVM(NextionAction):
-    def __init__(self, writer: NextionWriter, imagewriter: NextionImagewriter):
+    def __init__(self, writer: NextionWriter, imagewriter: NextionImageWriter):
         super().__init__(writer)
         self.imagewriter = imagewriter
 
@@ -207,7 +207,7 @@ class ControlStateNVM(NextionAction):
         return len(data) == 5 and data[0] == RequestType_Data and data[1] == EntityType_InterfaceValueOfState
 
     def act(self, data: bytearray):
-        self.writer.render("vis loadingBtn,1")
+        self.writer.write("vis loadingBtn,1")
 
         instanceIdLow = data[2]
         instanceIdHigh = data[3]
@@ -215,49 +215,49 @@ class ControlStateNVM(NextionAction):
         instanceId = instanceIdHigh*256 + instanceIdLow
         if instanceId == 0x01:
             if statePageNo == 0x00:
-                self.writer.render("titleTxt.txt=\"Recuperator\"")
-                self.writer.render("intValTxt.txt=\"II gear\"")
-                self.writer.render("vis markerTxt,1")
-                self.imagewriter.renderImageToNextion(63, 47, "atticIcon")
+                self.writer.write("titleTxt.txt=\"Recuperator\"")
+                self.writer.write("intValTxt.txt=\"II gear\"")
+                self.writer.write("vis markerTxt,1")
+                self.imagewriter.writeImage(63, 47, "atticIcon")
 
-                self.writer.render("vis slot0Btn,1")
-                self.writer.render("slot0Btn.txt=\"Gear I\"")
-                self.writer.render("vis slot1Btn,1")
-                self.writer.render("slot1Btn.txt=\"Gear II\"")
-                self.writer.render("vis slot2Btn,1")
-                self.writer.render("slot2Btn.txt=\"Gear III\"")
-                self.writer.render("vis slot3Btn,1")
-                self.writer.render("slot3Btn.txt=\"Gear IV\"")
-                self.writer.render("vis slot4Btn,1")
-                self.writer.render("slot4Btn.txt=\"Gear V\"")
-                self.writer.render("vis slot5Btn,1")
-                self.writer.render("slot5Btn.txt=\"Gear VI\"")
-                self.writer.render("vis pageUpBtn,1")
-                self.writer.render("pageUpBtn.pco=42260")
-                self.writer.render("tsw pageUpBtn,0")
-                self.writer.render("vis pageDownBtn,1")
+                self.writer.write("vis slot0Btn,1")
+                self.writer.write("slot0Btn.txt=\"Gear I\"")
+                self.writer.write("vis slot1Btn,1")
+                self.writer.write("slot1Btn.txt=\"Gear II\"")
+                self.writer.write("vis slot2Btn,1")
+                self.writer.write("slot2Btn.txt=\"Gear III\"")
+                self.writer.write("vis slot3Btn,1")
+                self.writer.write("slot3Btn.txt=\"Gear IV\"")
+                self.writer.write("vis slot4Btn,1")
+                self.writer.write("slot4Btn.txt=\"Gear V\"")
+                self.writer.write("vis slot5Btn,1")
+                self.writer.write("slot5Btn.txt=\"Gear VI\"")
+                self.writer.write("vis pageUpBtn,1")
+                self.writer.write("pageUpBtn.pco=42260")
+                self.writer.write("tsw pageUpBtn,0")
+                self.writer.write("vis pageDownBtn,1")
             else:
-                self.writer.render("vis slot0Btn,1")
-                self.writer.render("slot0Btn.txt=\"Gear VII\"")
-                self.writer.render("vis slot1Btn,1")
-                self.writer.render("slot1Btn.txt=\"Gear VIII\"")
-                self.writer.render("vis slot2Btn,0")
-                self.writer.render("vis slot3Btn,0")
-                self.writer.render("vis slot4Btn,0")
-                self.writer.render("vis slot5Btn,0")
-                self.writer.render("vis pageUpBtn,1")
-                self.writer.render("pageUpBtn.pco=0")
-                self.writer.render("tsw pageUpBtn,1")
-                self.writer.render("vis pageDownBtn,0")
+                self.writer.write("vis slot0Btn,1")
+                self.writer.write("slot0Btn.txt=\"Gear VII\"")
+                self.writer.write("vis slot1Btn,1")
+                self.writer.write("slot1Btn.txt=\"Gear VIII\"")
+                self.writer.write("vis slot2Btn,0")
+                self.writer.write("vis slot3Btn,0")
+                self.writer.write("vis slot4Btn,0")
+                self.writer.write("vis slot5Btn,0")
+                self.writer.write("vis pageUpBtn,1")
+                self.writer.write("pageUpBtn.pco=0")
+                self.writer.write("tsw pageUpBtn,1")
+                self.writer.write("vis pageDownBtn,0")
 
         else:
             if instanceId == 0x02:
-                self.writer.render("titleTxt.txt=\"Radiator valve\"")
-                self.writer.render("intValTxt.txt=\"Regulation\"")
-                self.writer.render("vis markerTxt,0")
-                self.imagewriter.renderImageToNextion(63, 47, "buttonIcon")
+                self.writer.write("titleTxt.txt=\"Radiator valve\"")
+                self.writer.write("intValTxt.txt=\"Regulation\"")
+                self.writer.write("vis markerTxt,0")
+                self.imagewriter.writeImage(63, 47, "buttonIcon")
 
-        self.writer.render("vis loadingBtn,0")
+        self.writer.write("vis loadingBtn,0")
 
 
 class InboxDetailsNVM(NextionAction):
@@ -267,10 +267,10 @@ class InboxDetailsNVM(NextionAction):
     def act(self, data: bytearray):
         messageId = data[2]
         print("Displaying details of message {}".format(messageId))
-        self.writer.render("subjectTxt.txt=\"This is message subject\"")
-        self.writer.render("timeTxt.txt=\"5m ago\"")
-        self.writer.render("bodyTxt.txt=\"This is message body, a very, very, very long one... Lorem ipsum et dolores colorez\"")
-        self.writer.render("vis loadingBtn,0")
+        self.writer.write("subjectTxt.txt=\"This is message subject\"")
+        self.writer.write("timeTxt.txt=\"5m ago\"")
+        self.writer.write("bodyTxt.txt=\"This is message body, a very, very, very long one... Lorem ipsum et dolores colorez\"")
+        self.writer.write("vis loadingBtn,0")
 
 
 class InboxNVM(NextionAction):
@@ -280,60 +280,60 @@ class InboxNVM(NextionAction):
     def act(self, data: bytearray):
         page = data[2]
         if page == 0x00:
-            self.writer.render("vis slot0Btn,1")
-            self.writer.render("slot0Btn.txt=\"Thank you for choosing Automate Everything\"")
-            self.writer.render("slot0Btn.font=2")
+            self.writer.write("vis slot0Btn,1")
+            self.writer.write("slot0Btn.txt=\"Thank you for choosing Automate Everything\"")
+            self.writer.write("slot0Btn.font=2")
 
-            self.writer.render("vis slot1Btn,1")
-            self.writer.render("slot1Btn.txt=\"Automation enabled\"")
-            self.writer.render("slot1Btn.font=2")
+            self.writer.write("vis slot1Btn,1")
+            self.writer.write("slot1Btn.txt=\"Automation enabled\"")
+            self.writer.write("slot1Btn.font=2")
 
-            self.writer.render("vis slot2Btn,1")
-            self.writer.render("slot2Btn.txt=\"Automation disabled\"")
-            self.writer.render("slot2Btn.font=1")
+            self.writer.write("vis slot2Btn,1")
+            self.writer.write("slot2Btn.txt=\"Automation disabled\"")
+            self.writer.write("slot2Btn.font=1")
 
-            self.writer.render("vis slot3Btn,1")
-            self.writer.render("slot3Btn.txt=\"A problem with sensor one\"")
-            self.writer.render("slot3Btn.font=1")
+            self.writer.write("vis slot3Btn,1")
+            self.writer.write("slot3Btn.txt=\"A problem with sensor one\"")
+            self.writer.write("slot3Btn.font=1")
 
-            self.writer.render("vis slot4Btn,1")
-            self.writer.render("slot4Btn.txt=\"A problem with sensor two\"")
-            self.writer.render("slot4Btn.font=1")
+            self.writer.write("vis slot4Btn,1")
+            self.writer.write("slot4Btn.txt=\"A problem with sensor two\"")
+            self.writer.write("slot4Btn.font=1")
 
-            self.writer.render("vis slot5Btn,1")
-            self.writer.render("slot5Btn.txt=\"A problem with sensor three\"")
-            self.writer.render("slot5Btn.font=1")
+            self.writer.write("vis slot5Btn,1")
+            self.writer.write("slot5Btn.txt=\"A problem with sensor three\"")
+            self.writer.write("slot5Btn.font=1")
 
-            self.writer.render("vis slot6Btn,1")
-            self.writer.render("slot6Btn.txt=\"System is DOWN\"")
-            self.writer.render("slot6Btn.font=1")
+            self.writer.write("vis slot6Btn,1")
+            self.writer.write("slot6Btn.txt=\"System is DOWN\"")
+            self.writer.write("slot6Btn.font=1")
 
-            self.writer.render("vis slot7Btn,1")
-            self.writer.render("slot7Btn.txt=\"System is UP\"")
-            self.writer.render("slot7Btn.font=1")
+            self.writer.write("vis slot7Btn,1")
+            self.writer.write("slot7Btn.txt=\"System is UP\"")
+            self.writer.write("slot7Btn.font=1")
 
-            self.writer.render("vis prevPageBtn,0")
-            self.writer.render("vis nextPageBtn,1")
-            self.writer.render("vis loadingBtn,0")
+            self.writer.write("vis prevPageBtn,0")
+            self.writer.write("vis nextPageBtn,1")
+            self.writer.write("vis loadingBtn,0")
         else:
-            self.writer.render("vis slot0Btn,1")
-            self.writer.render("slot0Btn.txt=\"Page 2, message 1\"")
-            self.writer.render("slot0Btn.font=2")
+            self.writer.write("vis slot0Btn,1")
+            self.writer.write("slot0Btn.txt=\"Page 2, message 1\"")
+            self.writer.write("slot0Btn.font=2")
 
-            self.writer.render("vis slot1Btn,1")
-            self.writer.render("slot1Btn.txt=\"Page 2, message 2\"")
-            self.writer.render("slot1Btn.font=2")
+            self.writer.write("vis slot1Btn,1")
+            self.writer.write("slot1Btn.txt=\"Page 2, message 2\"")
+            self.writer.write("slot1Btn.font=2")
 
-            self.writer.render("vis slot2Btn,0")
-            self.writer.render("vis slot3Btn,0")
-            self.writer.render("vis slot4Btn,0")
-            self.writer.render("vis slot5Btn,0")
-            self.writer.render("vis slot6Btn,0")
-            self.writer.render("vis slot7Btn,0")
+            self.writer.write("vis slot2Btn,0")
+            self.writer.write("vis slot3Btn,0")
+            self.writer.write("vis slot4Btn,0")
+            self.writer.write("vis slot5Btn,0")
+            self.writer.write("vis slot6Btn,0")
+            self.writer.write("vis slot7Btn,0")
 
-            self.writer.render("vis prevPageBtn,1")
-            self.writer.render("vis nextPageBtn,0")
-            self.writer.render("vis loadingBtn,0")
+            self.writer.write("vis prevPageBtn,1")
+            self.writer.write("vis nextPageBtn,0")
+            self.writer.write("vis loadingBtn,0")
 
 
 class StateSelectedNVM(NextionAction):
@@ -346,12 +346,12 @@ class StateSelectedNVM(NextionAction):
         instanceId = instanceIdHigh*256 + instanceIdLow
         stateSlotNo = data[4]
         print("State selected, instance id={}, state slot no={}".format(instanceId, stateSlotNo))
-        self.writer.render("page control")
+        self.writer.write("page control")
 
 
 def createControlActions(actionsBag, writer: NextionWriter):
     iconResolver = IconResolver()
-    imagewriter = NextionImagewriter(writer, iconResolver)
+    imagewriter = NextionImageWriter(writer, iconResolver)
     
     colorSelectedNVM = ColorSelectedNVM(writer)
     actionsBag.append(colorSelectedNVM)

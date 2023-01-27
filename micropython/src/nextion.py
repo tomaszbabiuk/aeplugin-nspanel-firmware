@@ -6,7 +6,7 @@ class NextionWriter:
     def __init__(self, uart: UART) -> None:
         self.uart = uart
 
-    def render(self, buf, insertDelimeter = True):
+    def write(self, buf, insertDelimeter = True):
         self.uart.write(buf)
         if insertDelimeter:
             self.uart.write(bytearray([0xff, 0xff, 0xff]))
@@ -20,7 +20,7 @@ class NextionWriter:
                     break
 
     def _beginUpdate(self, fileSize: int):
-        self.render("whmi-wri {},115200,res0".format(fileSize))
+        self.write("whmi-wri {},115200,res0".format(fileSize))
         self._waitForACK()
 
     def _writeChunkAndWait(self, chunk: bytes):
