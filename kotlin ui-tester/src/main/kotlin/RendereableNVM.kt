@@ -1,1 +1,0 @@
-abstract class RendereableNVM(protected val renderer: NextionRenderer) : NextionViewModel

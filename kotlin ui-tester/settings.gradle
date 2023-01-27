@@ -1,4 +1,0 @@
-
-rootProject.name = 'kotlin ui-tester'
-
-includeBuild "../../automate-everything/modules/data"
