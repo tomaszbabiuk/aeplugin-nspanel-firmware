@@ -13,12 +13,12 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 
 configManager = ConfigManager()
-renderer = NextionRenderer(uart)
+writer = NextionWriter(uart)
 
 actionsBag = []
-createSetupActions(actionsBag, renderer, wlan, configManager)
-createControlActions(actionsBag, renderer)
-parser = NextionParser(uart, actionsBag)
+createSetupActions(actionsBag, writer, wlan, configManager)
+createControlActions(actionsBag, writer)
+parser = NextionReader(uart, actionsBag)
 
 while True:
     parser.readAndParse()

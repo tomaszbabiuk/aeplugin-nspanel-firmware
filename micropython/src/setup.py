@@ -1,7 +1,6 @@
 from micropython import const
 from config import ConfigManager
 from nextion import *
-from array import array
 
 import network
 import time
@@ -31,8 +30,8 @@ EntityType_ReadyToUpgrade = const(0x10)
 
 
 class WifiPasswordAction(NextionAction):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
+    def __init__(self, writer: NextionWriter, configManager: ConfigManager):
+        super().__init__(writer)
         self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
@@ -43,12 +42,12 @@ class WifiPasswordAction(NextionAction):
         print("Typed password={}".format(password))
         self.configManager.setPassword(password)
         self.configManager.save()
-        self.renderer.render("page connecting")
+        self.writer.render("page connecting")
 
 
 class ConnectingAction(NextionAction):
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, configManager: ConfigManager) :
-        super().__init__(renderer)
+    def __init__(self, writer: NextionWriter, wlan: network.WLAN, configManager: ConfigManager) :
+        super().__init__(writer)
         self.wlan = wlan
         self.configManager = configManager
 
@@ -66,9 +65,9 @@ class ConnectingAction(NextionAction):
                 break
 
         if self.wlan.isconnected():
-            self.renderer.render("page setupSuccess")
+            self.writer.render("page setupSuccess")
         else:
-            self.renderer.render("page setupFailure")
+            self.writer.render("page setupFailure")
 
 
 class SetupSuccessAction(NextionAction):
@@ -76,11 +75,11 @@ class SetupSuccessAction(NextionAction):
         return len(data) == 2 and data[0] == RequestType_UISelection and data[1] == EntityType_ReadyToUpgrade
 
     def act(self, data: bytearray):
-        self.renderer.update("control.tft")
+        self.writer.update("control.tft")
 
 class WelcomeAction(NextionAction):
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN):
-        super().__init__(renderer)
+    def __init__(self, writer: NextionWriter, wlan: network.WLAN):
+        super().__init__(writer)
         self.wlan = wlan
 
     def checkMatch(self, data: bytearray):
@@ -89,22 +88,22 @@ class WelcomeAction(NextionAction):
     def act(self, data: bytearray):
         self.wlan.disconnect()
         scans = self.wlan.scan()
-        self.renderer.render('wifiSsid.scanResult.txt="', insertDelimeter = False)
+        self.writer.render('wifiSsid.scanResult.txt="', insertDelimeter = False)
         first = True
         for scan in scans:
             if not first:
-                self.renderer.render(';', insertDelimeter = False)
+                self.writer.render(';', insertDelimeter = False)
             
-            self.renderer.render(scan[0], insertDelimeter = False)
+            self.writer.render(scan[0], insertDelimeter = False)
             first = False
 
-        self.renderer.render('"')
-        self.renderer.render('page wifiSsid')
+        self.writer.render('"')
+        self.writer.render('page wifiSsid')
 
 
 class WiFiSsidAction(NextionAction):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
+    def __init__(self, writer: NextionWriter, configManager: ConfigManager):
+        super().__init__(writer)
         self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
@@ -114,12 +113,12 @@ class WiFiSsidAction(NextionAction):
         ssid = data[2:]
         print("Selected ssid={}".format(ssid))
         self.configManager.setSsid(ssid)
-        self.renderer.render("page wifiPassword")
+        self.writer.render("page wifiPassword")
 
 
-class LanguageSelectVM(NextionAction):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
+class LanguageSelectAction(NextionAction):
+    def __init__(self, writer: NextionWriter, configManager: ConfigManager):
+        super().__init__(writer)
         self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
@@ -131,8 +130,8 @@ class LanguageSelectVM(NextionAction):
 
 
 class LeftButtonConfigAction(NextionAction):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
+    def __init__(self, writer: NextionWriter, configManager: ConfigManager):
+        super().__init__(writer)
         self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
@@ -145,8 +144,8 @@ class LeftButtonConfigAction(NextionAction):
 
 
 class RightButtonConfigAction(NextionAction):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
+    def __init__(self, writer: NextionWriter, configManager: ConfigManager):
+        super().__init__(writer)
         self.configManager = configManager
 
     def checkMatch(self, data: bytearray):
@@ -159,28 +158,28 @@ class RightButtonConfigAction(NextionAction):
 
 
 
-def createSetupActions(actionsBag, renderer: NextionRenderer, wlan: network.WLAN, configManager: ConfigManager):
+def createSetupActions(actionsBag, writer: NextionWriter, wlan: network.WLAN, configManager: ConfigManager):
 
-    wiFiPasswordAction = WifiPasswordAction(renderer, configManager)
+    wiFiPasswordAction = WifiPasswordAction(writer, configManager)
     actionsBag.append(wiFiPasswordAction)
 
-    connectingAction = ConnectingAction(renderer, wlan, configManager)
-    actionsBag.processors.append(connectingAction)
+    connectingAction = ConnectingAction(writer, wlan, configManager)
+    actionsBag.append(connectingAction)
 
-    welcomeAction = WelcomeAction(renderer, wlan)
-    actionsBag.processors.append(welcomeAction)
+    welcomeAction = WelcomeAction(writer, wlan)
+    actionsBag.append(welcomeAction)
 
-    wiFiSsidAction = WiFiSsidAction(renderer, configManager)
-    actionsBag.processors.append(wiFiSsidAction)
+    wiFiSsidAction = WiFiSsidAction(writer, configManager)
+    actionsBag.append(wiFiSsidAction)
 
-    languageSelectAction = LanguageSelectVM(renderer, configManager)
-    actionsBag.processors.append(languageSelectAction)
+    languageSelectAction = LanguageSelectAction(writer, configManager)
+    actionsBag.append(languageSelectAction)
 
-    leftButtonConfigAction = LeftButtonConfigAction(renderer, configManager)
-    actionsBag.processors.append(leftButtonConfigAction)
+    leftButtonConfigAction = LeftButtonConfigAction(writer, configManager)
+    actionsBag.append(leftButtonConfigAction)
 
-    rightButtonConfigAction = RightButtonConfigAction(renderer, configManager)
-    actionsBag.processors.append(rightButtonConfigAction)
+    rightButtonConfigAction = RightButtonConfigAction(writer, configManager)
+    actionsBag.append(rightButtonConfigAction)
 
-    setupSuccessAction = SetupSuccessAction(renderer)
-    actionsBag.processors.append(setupSuccessAction)
+    setupSuccessAction = SetupSuccessAction(writer)
+    actionsBag.append(setupSuccessAction)

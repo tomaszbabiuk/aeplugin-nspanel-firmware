@@ -2,9 +2,7 @@ from machine import UART
 import os
 import time
 
-
-
-class NextionRenderer:
+class NextionWriter:
     def __init__(self, uart: UART) -> None:
         self.uart = uart
 
@@ -21,7 +19,7 @@ class NextionRenderer:
                 if len(b) == 1 and b[0] == 0x05:
                     break
 
-    def _beginUpload(self, fileSize: int):
+    def _beginUpdate(self, fileSize: int):
         self.render("whmi-wri {},115200,res0".format(fileSize))
         self._waitForACK()
 
@@ -37,7 +35,7 @@ class NextionRenderer:
                 print("File {} is empty".format(fileName))
             else:
                 print("File found: {}, {} bytes".format(fileName, fileSize))
-                self._beginUpload(fileSize)
+                self._beginUpdate(fileSize)
                 total = 0
                 with open(fileName, "rb") as f:
                     while True:
@@ -50,7 +48,7 @@ class NextionRenderer:
             print("File does not exist")
 
 
-class NextionParser:
+class NextionReader:
     buffer = bytearray()
 
     def __init__(self, uart: UART, actions):
@@ -63,7 +61,7 @@ class NextionParser:
             match = action.checkMatch(command)
             if (match):
                 print("Action selected {}".format(action.__class__))
-                action.control(command)
+                action.act(command)
                 hasMatch = True
                 break
             
@@ -90,8 +88,8 @@ class NextionParser:
                     self.buffer = bytearray()
 
 class NextionAction:
-    def __init__(self, renderer: NextionRenderer):
-        self.renderer = renderer
+    def __init__(self, writer: NextionWriter):
+        self.writer = writer
 
     def checkMatch(self, data: bytearray):
         return False
