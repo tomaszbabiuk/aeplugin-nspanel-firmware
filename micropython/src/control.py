@@ -3,7 +3,6 @@ from config import ConfigManager
 from nextion import *
 
 import network
-import time
 
 RequestType_Data = const(0x00)
 RequestType_UISelection = const (0x01)
@@ -27,11 +26,31 @@ EntityType_LeftButtonConfig = const(0x0E)
 EntityType_RightButtonConfig = const(0x0F)
 EntityType_ReadyToUpgrade = const(0x10)
 
-class ColorSelectedNVM(NextionViewModel):
+class IconResolver:
+    def resolve(self, name: str):
+        # TODO
+        #     x0  x1  y1  y2
+        p1 = (10, 10, 20, 20)
+        p2 = (15, 15, 30, 30)
+        return [p1, p2]
+
+class NextionImageRenderer:
+    def __init__(self, renderer: NextionRenderer, iconResolver: IconResolver) -> None:
+        self.renderer = renderer
+        self.iconResolver = iconResolver
+
+    def renderImageToNextion(self, xRel: int, yRel: int, name):
+        lines = self.iconResolver.resolve(name)
+        for it in lines:
+            line = "line {},{},{},{},WHITE".format(xRel + it[0], yRel + it[1], xRel + it[2], yRel + it[3])
+            self.renderer.render(line)
+
+
+class ColorSelectedNVM(NextionAction):
     def checkMatch(self, data: bytearray):
         return len(data) == 7 and data[0] == RequestType_UISelection and data[1] == EntityType_ColorSelection
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         instanceIdLSB = data[2]
         instanceIdMSB = data[3]
         instanceId = instanceIdMSB*256 + instanceIdLSB
@@ -43,7 +62,7 @@ class ColorSelectedNVM(NextionViewModel):
         self.renderer.render("page control")
 
 
-class ControlColorNVM(NextionViewModel):
+class ControlColorNVM(NextionAction):
     def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
         super().__init__(renderer)
         self.imageRenderer = imageRenderer
@@ -51,7 +70,7 @@ class ControlColorNVM(NextionViewModel):
     def checkMatch(self, data: bytearray):
         return len(data) == 4 and data[0] == RequestType_Data and data[1] == EntityType_InterfaceValueOfColor
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         self.renderer.render("vis loadingBtn,1")
 
         instanceIdLow = data[2]
@@ -67,7 +86,7 @@ class ControlColorNVM(NextionViewModel):
         self.renderer.render("vis applyBtn,1")
 
 
-class ControlControllerNVM(NextionViewModel):
+class ControlControllerNVM(NextionAction):
     def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
         super().__init__(renderer)
         self.imageRenderer = imageRenderer
@@ -75,7 +94,7 @@ class ControlControllerNVM(NextionViewModel):
     def checkMatch(self, data: bytearray):
         return len(data) == 4 and data[0] == RequestType_Data and EntityType_InterfaceValueOfController
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         self.renderer.render("vis loadingBtn,1")
 
         instanceIdLow = data[2]
@@ -97,11 +116,11 @@ class ControlControllerNVM(NextionViewModel):
         self.renderer.render("vis applyBtn,1")
 
 
-class ControllerSelectedNVM(NextionViewModel):
+class ControllerSelectedNVM(NextionAction):
     def checkMatch(self, data: bytearray):
         return len(data) == 8 and data[0] == RequestType_UISelection and data[1] == EntityType_ValueSelection
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         instanceIdLSB = data[2]
         instanceIdMSB = data[3]
         instanceId = instanceIdMSB*256 + instanceIdLSB
@@ -114,7 +133,7 @@ class ControllerSelectedNVM(NextionViewModel):
         self.renderer.render("page control")
 
 
-class ControlNVM(NextionViewModel):
+class ControlNVM(NextionAction):
     def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
         super().__init__(renderer)
         self.imageRenderer = imageRenderer
@@ -152,7 +171,7 @@ class ControlNVM(NextionViewModel):
         self.renderer.render('slot{}Btn.txt="{}"'.format(slot, state))
         self.renderer.render("type{}.val={}".format(slot, controlType))
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         page = data[2]
         if page == 0x00:
             self.renderControlSlot(0, 1,0,"Recuperator", "---", "II gear", True)
@@ -179,7 +198,7 @@ class ControlNVM(NextionViewModel):
             self.renderPager(prevEnabled = True, nextEnabled = False)
 
 
-class ControlStateNVM(NextionViewModel):
+class ControlStateNVM(NextionAction):
     def __init__(self, renderer: NextionRenderer, imageRenderer: NextionImageRenderer):
         super().__init__(renderer)
         self.imageRenderer = imageRenderer
@@ -187,7 +206,7 @@ class ControlStateNVM(NextionViewModel):
     def checkMatch(self, data: bytearray):
         return len(data) == 5 and data[0] == RequestType_Data and data[1] == EntityType_InterfaceValueOfState
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         self.renderer.render("vis loadingBtn,1")
 
         instanceIdLow = data[2]
@@ -241,11 +260,11 @@ class ControlStateNVM(NextionViewModel):
         self.renderer.render("vis loadingBtn,0")
 
 
-class InboxDetailsNVM(NextionViewModel):
+class InboxDetailsNVM(NextionAction):
     def checkMatch(self, data: bytearray):
         return len(data) == 3 and data[0] == RequestType_Data and data[1] == EntityType_InboxBody
     
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         messageId = data[2]
         print("Displaying details of message {}".format(messageId))
         self.renderer.render("subjectTxt.txt=\"This is message subject\"")
@@ -254,11 +273,11 @@ class InboxDetailsNVM(NextionViewModel):
         self.renderer.render("vis loadingBtn,0")
 
 
-class InboxNVM(NextionViewModel):
+class InboxNVM(NextionAction):
     def checkMatch(self, data: bytearray):
         return len(data) == 3 and data[0] == RequestType_Data and data[1] == EntityType_InboxSubjects
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         page = data[2]
         if page == 0x00:
             self.renderer.render("vis slot0Btn,1")
@@ -317,11 +336,11 @@ class InboxNVM(NextionViewModel):
             self.renderer.render("vis loadingBtn,0")
 
 
-class StateSelectedNVM(NextionViewModel):
+class StateSelectedNVM(NextionAction):
     def checkMatch(self, data: bytearray):
         return len(data) == 5 and data[0] == RequestType_UISelection and data[1] == EntityType_StateSelection
 
-    def control(self, data: bytearray):
+    def act(self, data: bytearray):
         instanceIdLow = data[2]
         instanceIdHigh = data[3]
         instanceId = instanceIdHigh*256 + instanceIdLow
@@ -330,200 +349,33 @@ class StateSelectedNVM(NextionViewModel):
         self.renderer.render("page control")
 
 
-class WifiPasswordNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
-        self.configManager = configManager
-
-    def checkMatch(self, data: bytearray):
-        return len(data) > 2 and data[0] == RequestType_UISelection and data[1] == EntityType_WiFiPassword
-
-    def control(self, data: bytearray):
-        password = data[2:]
-        print("Typed password={}".format(password))
-        self.configManager.setPassword(password)
-        self.configManager.save()
-        self.renderer.render("page connecting")
-
-
-class ConnectingNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, configManager: ConfigManager) :
-        super().__init__(renderer)
-        self.wlan = wlan
-        self.configManager = configManager
-
-    def checkMatch(self, data: bytearray):
-        return len(data) == 2 and data[0] == RequestType_Data and data[1] == EntityType_ConnectionState
-
-    def control(self, data: bytearray):
-        self.wlan.disconnect()
-        self.wlan.connect(self.configManager.getSsid(), self.configManager.getPassword())
-
-        for x in range(1, 10):
-            print("Checking network connection {}".format(x))
-            time.sleep(1)
-            if self.wlan.isconnected():
-                break
-
-        if self.wlan.isconnected():
-            self.renderer.render("page setupSuccess")
-        else:
-            self.renderer.render("page setupFailure")
-
-
-class SetupSuccessNVM(NextionViewModel):
-    def checkMatch(self, data: bytearray):
-        return len(data) == 2 and data[0] == RequestType_UISelection and data[1] == EntityType_ReadyToUpgrade
-
-    def control(self, data: bytearray):
-        self.renderer.update("control.tft")
-
-class WelcomeNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN):
-        super().__init__(renderer)
-        self.wlan = wlan
-
-    def checkMatch(self, data: bytearray):
-        return len(data) == 2 and data[0] == RequestType_Data and data[1] == EntityType_SSIDs
-
-    def control(self, data: bytearray):
-        self.wlan.disconnect()
-        scans = self.wlan.scan()
-        self.renderer.render('wifiSsid.scanResult.txt="', insertDelimeter = False)
-        first = True
-        for scan in scans:
-            if not first:
-                self.renderer.render(';', insertDelimeter = False)
-            
-            self.renderer.render(scan[0], insertDelimeter = False)
-            first = False
-
-        self.renderer.render('"')
-        self.renderer.render('page wifiSsid')
-
-
-class WiFiSsidNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
-        self.configManager = configManager
-
-    def checkMatch(self, data: bytearray):
-        return len(data) > 2 and data[0] == RequestType_UISelection and data[1] == EntityType_SSIDSelection
+def createControlActions(actionsBag, renderer: NextionRenderer):
+    iconResolver = IconResolver()
+    imageRenderer = NextionImageRenderer(renderer, iconResolver)
     
-    def control(self, data: bytearray):
-        ssid = data[2:]
-        print("Selected ssid={}".format(ssid))
-        self.configManager.setSsid(ssid)
-        self.renderer.render("page wifiPassword")
+    colorSelectedNVM = ColorSelectedNVM(renderer)
+    actionsBag.append(colorSelectedNVM)
 
+    controlColorNVM = ControlColorNVM(renderer, imageRenderer)
+    actionsBag.append(controlColorNVM)
 
-class LanguageSelectVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
-        self.configManager = configManager
+    controlControllerNVM = ControlControllerNVM(renderer, imageRenderer)
+    actionsBag.append(controlControllerNVM)
 
-    def checkMatch(self, data: bytearray):
-        return len(data) == 3 and data[0] == RequestType_UISelection and data[1] == EntityType_LanguageSelection
+    controllerSelectedNVM = ControllerSelectedNVM(renderer)
+    actionsBag.append(controllerSelectedNVM)
 
-    def control(self, data: bytearray):
-        lang = data[2]
-        self.configManager.setLanguage(lang)
+    controlNVM = ControlNVM(renderer, imageRenderer)
+    actionsBag.append(controlNVM)
 
+    controlStateNVM = ControlStateNVM(renderer, imageRenderer)
+    actionsBag.append(controlStateNVM)
 
-class LeftButtonConfigNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
-        self.configManager = configManager
-
-    def checkMatch(self, data: bytearray):
-        return len(data) == 4 and data[0] == RequestType_UISelection and data[1] == EntityType_LeftButtonConfig
-
-    def control(self, data: bytearray):
-        action = data[2]
-        time = data[3]
-        self.configManager.setLeftButtonConfig(action, time)
-
-
-class RightButtonConfigNVM(NextionViewModel):
-    def __init__(self, renderer: NextionRenderer, configManager: ConfigManager):
-        super().__init__(renderer)
-        self.configManager = configManager
-
-    def checkMatch(self, data: bytearray):
-        return len(data) == 4 and data[0] == RequestType_UISelection and data[1] == EntityType_RightButtonConfig
-
-    def control(self, data: bytearray):
-        action = data[2]
-        time = data[3]
-        self.configManager.setRightButtonConfig(action, time)
-
-
-class AutomateEverythingCommandsProcessor(CommandsProcessor):
-
-    def __init__(self, renderer: NextionRenderer, wlan: network.WLAN, imageRenderer: NextionImageRenderer, configManager: ConfigManager) -> None:
-        self.processors = []
-
-        colorSelectedNVM = ColorSelectedNVM(renderer)
-        self.processors.append(colorSelectedNVM)
-
-        controlColorNVM = ControlColorNVM(renderer, imageRenderer)
-        self.processors.append(controlColorNVM)
-
-        controlControllerNVM = ControlControllerNVM(renderer, imageRenderer)
-        self.processors.append(controlControllerNVM)
-
-        controllerSelectedNVM = ControllerSelectedNVM(renderer)
-        self.processors.append(controllerSelectedNVM)
-
-        controlNVM = ControlNVM(renderer, imageRenderer)
-        self.processors.append(controlNVM)
-
-        controlStateNVM = ControlStateNVM(renderer, imageRenderer)
-        self.processors.append(controlStateNVM)
-
-        inboxDetailsNVM = InboxDetailsNVM(renderer)
-        self.processors.append(inboxDetailsNVM)
-        
-        inboxNVM = InboxNVM(renderer)
-        self.processors.append(inboxNVM)
-        
-        stateSelectedNVM = StateSelectedNVM(renderer)
-        self.processors.append(stateSelectedNVM)
-
-        wiFiPasswordNVM = WifiPasswordNVM(renderer, configManager)
-        self.processors.append(wiFiPasswordNVM)
-
-        connectingNVM = ConnectingNVM(renderer, wlan, configManager)
-        self.processors.append(connectingNVM)
-
-        welcomeNVM = WelcomeNVM(renderer, wlan)
-        self.processors.append(welcomeNVM)
-
-        wiFiSsidNVM = WiFiSsidNVM(renderer, configManager)
-        self.processors.append(wiFiSsidNVM)
-
-        languageSelectNVM = LanguageSelectVM(renderer, configManager)
-        self.processors.append(languageSelectNVM)
-
-        leftButtonConfigNVM = LeftButtonConfigNVM(renderer, configManager)
-        self.processors.append(leftButtonConfigNVM)
-
-        rightButtonConfigNVM = RightButtonConfigNVM(renderer, configManager)
-        self.processors.append(rightButtonConfigNVM)
-
-        setupSuccessNVM = SetupSuccessNVM(renderer)
-        self.processors.append(setupSuccessNVM)
-
-
-    def process(self, command: bytearray):
-        hasMatch = False
-        for processor in self.processors:
-            match = processor.checkMatch(command)
-            if (match):
-                print("Processor selected {}".format(processor.__class__))
-                processor.control(command)
-                hasMatch = True
-                break
-            
-        if not hasMatch:
-            print("No match")
+    inboxDetailsNVM = InboxDetailsNVM(renderer)
+    actionsBag.append(inboxDetailsNVM)
+    
+    inboxNVM = InboxNVM(renderer)
+    actionsBag.append(inboxNVM)
+    
+    stateSelectedNVM = StateSelectedNVM(renderer)
+    actionsBag.append(stateSelectedNVM)

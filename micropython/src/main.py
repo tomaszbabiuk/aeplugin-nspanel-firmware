@@ -2,7 +2,8 @@ import time
 import network
 from machine import UART
 from nextion import *
-from ae import AutomateEverythingCommandsProcessor
+from setup import createSetupActions
+from control import createControlActions
 from config import ConfigManager
 
 uart = UART(2, 115200)
@@ -12,12 +13,13 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 
 configManager = ConfigManager()
-iconResolver = IconResolver()
 renderer = NextionRenderer(uart)
-imageRenderer = NextionImageRenderer(renderer, iconResolver)
-processor = AutomateEverythingCommandsProcessor(renderer, wlan, imageRenderer, configManager)
-parser = NextionParser(uart, processor)
+
+actionsBag = []
+createSetupActions(actionsBag, renderer, wlan, configManager)
+createControlActions(actionsBag, renderer)
+parser = NextionParser(uart, actionsBag)
 
 while True:
     parser.readAndParse()
-    time.sleep_ms(100)
+    time.sleep_ms(50)
